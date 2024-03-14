@@ -8,6 +8,7 @@ import { getDescriptors, loadModels } from "@/pipeline/Faces";
 import NotifContext, {
   NotifType,
 } from "@/providers/NotifProvider/NotifProvider";
+import useDrag from "@/hooks/useDrag";
 
 const videoConstraints = {
   width: 1280,
@@ -16,10 +17,11 @@ const videoConstraints = {
 };
 
 const WebcamCapture = () => {
-  const webcamRef = useRef<Webcam>(null);
+  const webcamRef = useRef<HTMLDivElement>(null);
 
   const screenshots = useWebcamCaptures(1000);
   const { addNotif, removeNotif } = useContext(NotifContext);
+  const { position, onMouseDown } = useDrag(webcamRef);
 
   const notifId = useRef<{
     id: string;
@@ -60,7 +62,7 @@ const WebcamCapture = () => {
                     }),
                     reason: "no-face",
                   };
-                }, 10000);
+                }, 3000);
               }
             }
           } else {
@@ -92,30 +94,37 @@ const WebcamCapture = () => {
       <button
         onClick={() => {
           // Add all types of notifications
-          Object.values(NotifType).forEach((type) => {
+          Object.values(NotifType).forEach((type, idx) => {
             addNotif({
               title: `Test${Date.now()}`,
               body: "This is a test",
               type,
               closeable: true,
-              onClick: () => {
-                console.log("clicked");
-              },
+              timeout: idx % 2 === 0 ? 6000 : undefined,
             });
           });
         }}
       >
         CLICK
       </button>
-      <Webcam
-        audio={false}
-        height={720}
+      <div
+        className="w-[20rem] rounded-xl hover:cursor-move webcam-wrapper overflow-hidden"
+        onMouseDown={onMouseDown}
+        style={{
+          position: "absolute",
+          top: position.y,
+          left: position.x,
+        }}
         ref={webcamRef}
-        screenshotFormat="image/jpeg"
-        width={1280}
-        videoConstraints={videoConstraints}
-        className="absolute top-0 left-0 w-[20rem]"
-      />
+      >
+        <Webcam
+          audio={false}
+          height={720}
+          screenshotFormat="image/jpeg"
+          width={1280}
+          videoConstraints={videoConstraints}
+        />
+      </div>
     </>
   );
 };

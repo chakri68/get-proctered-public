@@ -18,7 +18,11 @@ export type Notif = {
   title: string;
   body: string;
   type: NotifType;
-  timeout: NodeJS.Timeout | null;
+  timeout: {
+    duration: number;
+    start: number;
+    ref: NodeJS.Timeout;
+  } | null;
   timestamp: number;
   onClick?: () => void;
   closeable?: boolean;
@@ -55,9 +59,13 @@ export const NotifProvider = ({ children }: { children: React.ReactNode }) => {
       timeout:
         timeout === 0
           ? null
-          : setTimeout(() => {
-              removeNotif(id);
-            }, timeout),
+          : {
+              ref: setTimeout(() => {
+                removeNotif(id);
+              }, timeout),
+              start: Date.now(),
+              duration: timeout,
+            },
     };
     setNotifs((prevNotifs) => [...prevNotifs, newNotif]);
     return id;
@@ -67,7 +75,7 @@ export const NotifProvider = ({ children }: { children: React.ReactNode }) => {
     setNotifs((prevNotifs) => {
       const notifIndex = prevNotifs.findIndex((notif) => notif.id === id);
       if (notifIndex !== -1) {
-        const timeout = prevNotifs[notifIndex].timeout;
+        const timeout = prevNotifs[notifIndex].timeout?.ref;
         timeout && clearTimeout(timeout);
         return [
           ...prevNotifs.slice(0, notifIndex),
@@ -113,6 +121,15 @@ export const NotifProvider = ({ children }: { children: React.ReactNode }) => {
               <h3 className="title">{notif.title}</h3>
             </div>
             <p className="content">{notif.body}</p>
+            {notif.timeout && (
+              <div
+                key={notif.id}
+                className="progress"
+                style={{
+                  animationDuration: `${notif.timeout.duration}ms`,
+                }}
+              ></div>
+            )}
           </div>
         ))}
       </div>

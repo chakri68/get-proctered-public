@@ -14,6 +14,7 @@
   height: var(--notif-height);
   transform-origin: right;
   flex-shrink: 0;
+  position: relative;
 
   &:not(:last-child) {
     margin-bottom: var(--notif-pane-gap);
@@ -111,6 +112,20 @@
     border-top: 1px solid rgba(0, 0, 0, 0.1);
   }
 
+  .progress {
+    transform: scaleX(0);
+    transform-origin: left;
+    height: 0.25rem;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: inherit;
+    animation-name: shrink;
+    animation-timing-function: linear;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+
   .close {
     cursor: pointer;
     padding: 0.5rem;
@@ -118,6 +133,16 @@
     position: absolute;
     right: 0;
     top: 0;
+    width: 2.5rem;
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    border-radius: 0 6px 0 6px;
+    transition: background-color 0.3s ease;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.1);
+    }
   }
 }
 
@@ -155,13 +180,11 @@
   from {
     transform: translateX(0);
     height: var(--notif-height);
-    scale: 1;
     margin-bottom: var(--notif-pane-gap);
   }
   to {
     transform: translateX(100%);
     height: 0;
-    scale: 0;
     margin-bottom: 0;
   }
 }
@@ -171,12 +194,19 @@
     transform: translateX(100%);
     margin-bottom: 0;
     height: 0;
-    scale: 0;
   }
   to {
     transform: translateX(0);
     height: var(--notif-height);
     margin-bottom: var(--notif-pane-gap);
-    scale: 1;
+  }
+}
+
+@keyframes shrink {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
   }
 }
