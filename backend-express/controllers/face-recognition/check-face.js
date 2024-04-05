@@ -13,10 +13,10 @@ const router = Router();
 
 router.post("/", upload.single("face"), async (req, res) => {
   try {
-    const userId = req.body.id;
+    const { id: userId } = req.body;
     const file = req.file;
 
-    if (!file || userId) {
+    if (!file || !userId) {
       throw new Error("Invalid request body");
     }
 
