@@ -2,35 +2,27 @@ import { Router } from "express";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../../utils/env.js";
 import prisma from "../../prisma/prisma.js";
+import { verifyToken } from "../../services/auth.js";
 
 const router = Router();
 
 router.post("/", async (req, res) => {
   try {
-    const token = req.cookies["auth-token"];
+    const { data, error } = await verifyToken(req.cookies);
 
-    if (!token) {
-      throw new Error("No token provided");
+    if (error || !data) {
+      throw new Error(error);
     }
-
-    /**
-     * @type {any}
-     */
-    const decoded = jwt.verify(token, JWT_SECRET);
 
     const user = await prisma.user.findUnique({
       where: {
-        id: decoded.id,
+        id: data.id,
       },
     });
 
-    if (!decoded) {
-      throw new Error("Invalid token");
-    }
-
-    return res.json({
-      message: "Token is valid",
-      data: { ...decoded, ...user },
+    return res.status(200).json({
+      message: "Authorized",
+      data: { ...data, ...user },
     });
   } catch (err) {
     return res.status(401).json({

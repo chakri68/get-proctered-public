@@ -1,33 +1,27 @@
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../utils/env.js";
+import { verifyToken } from "../services/auth.js";
 
 /**
  * @type {import("express").RequestHandler}
  */
-const checkAuth = (req, res, next) => {
+const checkAuth = async (req, res, next) => {
   try {
-    // Get the auth token from the cookies
-    const authToken = req.cookies["auth-token"];
+    const { data, error } = await verifyToken(req.cookies);
 
-    // Verify the token
-    const decoded = jwt.verify(authToken, JWT_SECRET);
-
-    if (!decoded) {
-      throw new Error("Invalid token");
+    if (error || !data) {
+      throw new Error(error);
     }
 
-    // @ts-ignore
-    const { email, userId } = decoded;
-
-    if (!email || !userId) {
-      throw new Error("Invalid token");
-    }
+    const { email, id } = data;
 
     // Set the user in the request object
     req.user = {
       email,
-      id: userId,
+      id,
     };
+
+    console.log({ user: req.user });
 
     // Call the next middleware
     next();
