@@ -48,7 +48,8 @@ router.post("/", upload.single("face"), async (req, res) => {
     });
   } catch (err) {
     res.status(400).json({
-      message: "Invalid request body",
+      message: "Invalid request",
+      error: err.message,
     });
   }
 });

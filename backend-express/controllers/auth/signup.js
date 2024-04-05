@@ -22,6 +22,17 @@ router.post("/", upload.single("face"), async (req, res) => {
     const file = req.file;
     if (!file) throw new Error("Invalid request body");
 
+    // Check of the user already exists
+    const existingUser = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if (existingUser) {
+      throw new Error("User already exists");
+    }
+
     const encPwd = await argon.hash(password);
     const faceDescriptors = await getFaceDescriptors(file.buffer);
 
@@ -41,8 +52,8 @@ router.post("/", upload.single("face"), async (req, res) => {
     });
   } catch (err) {
     res.status(400).json({
-      message: "Invalid request body",
-      err,
+      message: "Invalid request",
+      error: err.message,
     });
   }
 });

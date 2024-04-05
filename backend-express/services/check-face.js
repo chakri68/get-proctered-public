@@ -13,10 +13,22 @@ const { Canvas, Image, ImageData } = canvas;
 faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
 
 /**
+ * @param {Buffer} imageBuffer
+ */
+export function createImageElementFromBuffer(imageBuffer) {
+  const img = new canvas.Image();
+  img.onerror = (err) => {
+    throw err;
+  };
+  img.src = imageBuffer;
+  return img;
+}
+
+/**
  * @param {Buffer} input
  */
 export async function getFaceDescriptors(input) {
-  const image = tf.node.decodeImage(new Uint8Array(input));
+  const image = createImageElementFromBuffer(input);
   const result = await faceapi
     // @ts-ignore
     .detectSingleFace(image)
@@ -40,4 +52,6 @@ export async function compareDescriptors(descriptor1, descriptor2) {
 
 export async function loadModels() {
   await faceapi.nets.ssdMobilenetv1.loadFromDisk(`${ROOT_DIR}/models`);
+  await faceapi.nets.faceLandmark68Net.loadFromDisk(`${ROOT_DIR}/models`);
+  await faceapi.nets.faceRecognitionNet.loadFromDisk(`${ROOT_DIR}/models`);
 }
