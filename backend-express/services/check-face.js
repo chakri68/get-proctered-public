@@ -55,3 +55,15 @@ export async function loadModels() {
   await faceapi.nets.faceLandmark68Net.loadFromDisk(`${ROOT_DIR}/models`);
   await faceapi.nets.faceRecognitionNet.loadFromDisk(`${ROOT_DIR}/models`);
 }
+
+/**
+ * @param {Buffer} face
+ * @param {Float32Array} descriptor
+ * @returns {Promise<boolean>} True if the face matches the descriptors
+ */
+export async function compareFaceToDescriptor(face, descriptor) {
+  const newDescriptors = await getFaceDescriptors(face);
+  const faceDiff = await compareDescriptors(descriptor, newDescriptors);
+
+  return faceDiff < 0.5;
+}

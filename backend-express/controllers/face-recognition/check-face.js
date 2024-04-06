@@ -3,6 +3,7 @@ import multer from "multer";
 import prisma from "../../prisma/prisma.js";
 import {
   compareDescriptors,
+  compareFaceToDescriptor,
   getFaceDescriptors,
 } from "../../services/check-face.js";
 
@@ -30,18 +31,12 @@ router.post("/", upload.single("face"), async (req, res) => {
       throw new Error("User not found");
     }
 
-    const realDescriptor = new Float32Array(user.faceDescriptors);
-    const uploadedDescriptor = await getFaceDescriptors(file.buffer);
-
-    // Compare the descriptors
-    const distance = await compareDescriptors(
-      realDescriptor,
-      uploadedDescriptor
+    const matches = await compareFaceToDescriptor(
+      file.buffer,
+      new Float32Array(user.faceDescriptors)
     );
 
-    if (distance > 0.6) {
-      throw new Error("Face does not match");
-    }
+    if (!matches) throw new Error("Faces don't match");
 
     res.json({
       message: "Face matched",

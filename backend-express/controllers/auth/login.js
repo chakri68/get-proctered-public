@@ -3,6 +3,7 @@ import multer from "multer";
 import prisma from "../../prisma/prisma.js";
 import {
   compareDescriptors,
+  compareFaceToDescriptor,
   getFaceDescriptors,
 } from "../../services/check-face.js";
 import { z } from "zod";
@@ -43,18 +44,12 @@ router.post("/", upload.single("face"), async (req, res) => {
       throw new Error("Invalid password");
     }
 
-    // Check face descriptors
-    const queryFaceDescriptors = await getFaceDescriptors(file.buffer);
-    const userFaceDescriptors = user.faceDescriptors;
-
-    const faceDescriptorsMatch = await compareDescriptors(
-      queryFaceDescriptors,
-      userFaceDescriptors
+    const matches = await compareFaceToDescriptor(
+      file.buffer,
+      new Float32Array(user.faceDescriptors)
     );
 
-    if (faceDescriptorsMatch > 0.6) {
-      throw new Error("Face does not match");
-    }
+    if (!matches) throw new Error("Face doesn't match");
 
     // Login successful
     // Set the cookie and return the user

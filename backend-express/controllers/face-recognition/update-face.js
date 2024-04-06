@@ -13,14 +13,13 @@ const router = Router();
 // Middleware to check if the user is authenticated
 router.use(checkAuth);
 
-const updateFaceSchema = z.object({
-  userId: z.string(),
-});
-
 // POST route to store a face of a user
 router.post("/", upload.single("face"), async (req, res) => {
   try {
-    const { userId } = updateFaceSchema.parse(req.body);
+    const userId = req.user?.id;
+
+    if (!userId) throw new Error("Not Authorized");
+
     const file = req.file;
     if (!file) throw new Error("Invalid request body");
 
