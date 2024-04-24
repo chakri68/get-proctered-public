@@ -34,7 +34,7 @@
     height: 100vh;
     overflow-y: auto;
     overflow-x: hidden;
-    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+    /* box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1); */
     animation: none;
 
     padding: 1rem;
@@ -43,6 +43,9 @@
     flex-direction: column;
 
     background-color: transparent;
+
+    pointer-events: none;
+    
   }
 
   &.success {

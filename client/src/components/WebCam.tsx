@@ -21,7 +21,7 @@ const WebcamCapture = () => {
 
   const screenshots = useWebcamCaptures(1000);
   const { addNotif, removeNotif } = useContext(NotifContext);
-  const { position, onMouseDown } = useDrag(webcamRef);
+  // const { position, onMouseDown } = useDrag(webcamRef);
 
   const notifId = useRef<{
     id: string;
@@ -91,7 +91,7 @@ const WebcamCapture = () => {
 
   return (
     <>
-      <button
+      {/* <button
         onClick={() => {
           // Add all types of notifications
           Object.values(NotifType).forEach((type, idx) => {
@@ -106,14 +106,20 @@ const WebcamCapture = () => {
         }}
       >
         CLICK
-      </button>
+      </button> */}
       <div
-        className="w-[20rem] rounded-xl hover:cursor-move webcam-wrapper overflow-hidden"
-        onMouseDown={onMouseDown}
+        className="w-[10rem] rounded-xl cursor-pointer webcam-wrapper overflow-hidden"
+        // onMouseDown={onMouseDown}
+        onClick={(ev) => {
+          if (ev.currentTarget.style.width === "17rem")
+            ev.currentTarget.style.width = "10rem";
+          else ev.currentTarget.style.width = "17rem";
+        }}
         style={{
           position: "absolute",
-          top: position.y,
-          left: position.x,
+          bottom: "75px",
+          right: "20px",
+          transition: "width 0.5s",
         }}
         ref={webcamRef}
       >
