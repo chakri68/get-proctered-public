@@ -44,15 +44,15 @@ export default function useTestAnalytics() {
       if (!tabChangeNotifRef.current) {
         tabChangeNotifRef.current = addNotif({
           title: "Tab Change",
-          body: "You have switched tabs. Please return to continue the test.",
+          body: "You have switched tabs. The admin has been notified.",
           type: NotifType.WARNING,
           closeable: false,
+          timeout: 5000,
         });
-      }
-    } else {
-      if (tabChangeNotifRef.current) {
-        removeNotif(tabChangeNotifRef.current);
-        tabChangeNotifRef.current = null;
+
+        setTimeout(() => {
+          tabChangeNotifRef.current = null;
+        }, 5000);
       }
     }
     if (!isFullscreen) {

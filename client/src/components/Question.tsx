@@ -30,13 +30,12 @@ const Question: React.FC<Props> = ({
   useEffect(() => {
     // check if the current question is already answered in the answerList
     const answer = answerList[currentQuestion.index - 1];
-    if (answer!==-1) {
+    if (answer !== -1) {
       setSelectedOption(answer);
-    }
-    else{
+    } else {
       setSelectedOption(null);
     }
-  }, [currentQuestion,answerList]);
+  }, [currentQuestion, answerList]);
 
   const handleOptionSelect = (optionIndex: number) => {
     console.log(optionIndex);
@@ -104,11 +103,15 @@ const Question: React.FC<Props> = ({
                 <button
                   key={optionIndex}
                   className={`${
-                    selectedOption === optionIndex
+                    selectedOption !== optionIndex
                       ? "bg-gray-300"
                       : "bg-white dark:bg-gray-800 dark:text-white"
-                  } rounded-lg py-3 px-4 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors`}
-                  onClick={() => handleOptionSelect(optionIndex)}
+                  } rounded-lg py-3 px-4 hover:bg-gray-200 hover:text-white dark:hover:bg-gray-700 transition-colors`}
+                  onClick={() =>
+                    selectedOption !== optionIndex
+                      ? handleOptionSelect(optionIndex)
+                      : setSelectedOption(null)
+                  }
                 >
                   {option}
                 </button>
@@ -131,7 +134,8 @@ const Question: React.FC<Props> = ({
           Mark for Review & Next
         </button>
         <button
-          className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded ml-2"
+          disabled={selectedOption === null}
+          className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded ml-2 disabled:opacity-50"
           onClick={handleSubmit}
         >
           Submit & Next

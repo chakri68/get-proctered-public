@@ -1,11 +1,19 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-/* 
+
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
+}
+
+* {
+  box-sizing: border-box;
+
+  &:fullscreen {
+    background: inherit;
+  }
 }
 
 @media (prefers-color-scheme: dark) {
@@ -24,7 +32,7 @@ body {
       rgb(var(--background-end-rgb))
     )
     rgb(var(--background-start-rgb));
-} */
+}
 
 @layer utilities {
   .text-balance {

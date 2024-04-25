@@ -1,15 +1,35 @@
 "use client";
 
-import WebcamCapture from "@/components/WebCam";
-import useTestAnalytics from "@/hooks/TestAnalytics/useTestAnalytics";
+import { StartScreen } from "@/components/start-screen";
+import { TestScreen } from "@/components/test-screen";
+import ScreenProvider from "@/providers/ScreenContext/ScreenContext";
+import TestProvider, {
+  TestContext,
+} from "@/providers/TestProvider/TestProvider";
+import WebCamProvider from "@/providers/WebCamProvider/WebCamProvider";
 
 export default function TestPage() {
-  const { makeFullscreen } = useTestAnalytics();
-
   return (
-    <>
-      <button onClick={makeFullscreen}>full screen</button>
-      <WebcamCapture />
-    </>
+    <ScreenProvider>
+      <WebCamProvider>
+        <TestProvider>
+          <TestContext.Consumer>
+            {({ isTestStarted, testLoading }) => {
+              if (!isTestStarted && !testLoading) {
+                return (
+                  <div className="w-screen h-screen grid place-items-center">
+                    <div className="w-96">
+                      <StartScreen />
+                    </div>
+                  </div>
+                );
+              } else {
+                return <TestScreen />;
+              }
+            }}
+          </TestContext.Consumer>
+        </TestProvider>
+      </WebCamProvider>
+    </ScreenProvider>
   );
 }

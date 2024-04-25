@@ -5,7 +5,7 @@ import { loadModels } from "./services/check-face.js";
 
 const app = express();
 
-const port = 3000;
+const port = 4000;
 
 app.use(cookieParser());
 app.use(express.json());

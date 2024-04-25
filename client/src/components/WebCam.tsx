@@ -8,7 +8,6 @@ import { getDescriptors, loadModels } from "@/pipeline/Faces";
 import NotifContext, {
   NotifType,
 } from "@/providers/NotifProvider/NotifProvider";
-import useDrag from "@/hooks/useDrag";
 
 const videoConstraints = {
   width: 1280,
