@@ -15,6 +15,7 @@ router.use(checkAuth);
 
 router.post("/:id/start-test", upload.single("face"), async (req, res) => {
   try {
+    console.log({ req });
     if (!req.user) throw new Error("Not Authorized");
     const { id: userId } = req.user;
     const file = req.file;
@@ -420,6 +421,77 @@ router.post("/create", async (req, res) => {
     res.json({
       message: "Test created",
       data: test,
+    });
+  } catch (err) {
+    res.status(400).json({
+      message: "Invalid request",
+      error: err.message,
+    });
+  }
+});
+
+router.post("/:id/analytics", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { code, timestamp, severity, message } = req.body;
+
+    const user = req.user;
+    if (!user) throw new Error("Not Authorized");
+
+    const test = await prisma.test.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    if (!test) {
+      return res.status(404).json({
+        message: "Test not found",
+      });
+    }
+
+    const testSession = await prisma.testSession.findFirst({
+      where: {
+        testId: id,
+        userId: user.id,
+      },
+    });
+
+    if (!testSession) {
+      return res.status(404).json({
+        message: "Test session not found",
+      });
+    }
+
+    const prevEvents = testSession.events || [];
+
+    if (!Array.isArray(prevEvents)) {
+      return res.status(400).json({
+        message: "Invalid test session",
+      });
+    }
+
+    // Update the events with the new event
+    const newTestSession = await prisma.testSession.update({
+      where: {
+        id: testSession.id,
+      },
+      data: {
+        events: [
+          ...prevEvents,
+          {
+            code,
+            timestamp,
+            severity,
+            message,
+          },
+        ],
+      },
+    });
+
+    res.json({
+      message: "Test analytics",
+      data: newTestSession,
     });
   } catch (err) {
     res.status(400).json({

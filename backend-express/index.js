@@ -2,6 +2,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import buildRoutes from "./utils/build-routes.js";
 import { loadModels } from "./services/check-face.js";
+import cors from "cors";
 
 const app = express();
 
@@ -9,6 +10,12 @@ const port = 4000;
 
 app.use(cookieParser());
 app.use(express.json());
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  })
+);
 
 app.get("/", (req, res) => {
   res.send("App running on port 3000");

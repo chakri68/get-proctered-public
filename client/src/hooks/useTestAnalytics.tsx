@@ -4,6 +4,8 @@ import NotifContext, {
 import { ScreenContext } from "@/providers/ScreenContext/ScreenContext";
 import { useContext, useEffect, useRef, useState } from "react";
 import { ViolationContext } from "../providers/ViolationProvider/ViolationProvider";
+import { useParams } from "next/navigation";
+import instance from "../lib/backend-connect";
 
 export default function useTestAnalytics({
   showViolationScreen,
@@ -12,6 +14,8 @@ export default function useTestAnalytics({
   showViolationScreen: () => void;
   showWarningScreen: () => void;
 }) {
+  const { testId } = useParams();
+
   const { violations } = useContext(ViolationContext);
 
   const { makeFullscreen } = useContext(ScreenContext);
@@ -34,8 +38,21 @@ export default function useTestAnalytics({
   }, [serviceStarted]);
 
   useEffect(() => {
+    if (!serviceStarted) {
+      return;
+    }
     const newViolation = violations[violations.length - 1];
     if (newViolation) {
+      instance
+        .post(`/test/${testId}/analytics`, {
+          code: newViolation.code,
+          severity: newViolation.severity,
+          timestamp: newViolation.timestamp,
+          message: "You have violated the test rules",
+        })
+        .then((res) => {
+          console.log(res.data);
+        });
       notifRefs.current.push(
         addNotif({
           body: "You have violated the test rules",
@@ -70,7 +87,14 @@ export default function useTestAnalytics({
     makeFullscreen(el);
   };
 
+  const stopService = () => {
+    // Clear all notifications
+    notifRefs.current.forEach((ref) => removeNotif(ref));
+    setServiceStarted(false);
+  };
+
   return {
     startService,
+    stopService,
   };
 }

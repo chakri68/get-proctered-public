@@ -59,7 +59,7 @@ router.post("/", upload.single("face"), async (req, res) => {
 
     res.cookie("auth-token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      maxAge: 1000 * 60 * 60,
     });
 
     res.json({
@@ -72,6 +72,40 @@ router.post("/", upload.single("face"), async (req, res) => {
       error: err.message,
     });
   }
+});
+
+// TEMP route to login with just email
+router.put("/", async (req, res) => {
+  // Get the user id from the body
+  const { email } = req.body;
+
+  const user = await prisma.user.findUnique({
+    where: {
+      email,
+    },
+  });
+
+  if (!user) {
+    return res.status(400).json({
+      message: "User not found",
+    });
+  }
+
+  // Login successful
+  // Set the cookie and return the user
+  const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, {
+    expiresIn: "1h",
+  });
+
+  res.cookie("auth-token", token, {
+    httpOnly: true,
+    maxAge: 1000 * 60 * 60,
+  });
+
+  res.json({
+    message: "Login successful",
+    data: user,
+  });
 });
 
 export default router;

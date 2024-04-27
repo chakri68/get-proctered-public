@@ -45,6 +45,7 @@ export default function ScreenProvider({
 
   const exitFullscreen = () => {
     setIsFullScreen(false);
+    document.exitFullscreen();
   };
 
   return (

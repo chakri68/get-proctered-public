@@ -8,7 +8,13 @@ import {
 import { WebCamContext } from "@/providers/WebCamProvider/WebCamProvider";
 import { ScreenContext } from "@/providers/ScreenContext/ScreenContext";
 import useTestAnalytics from "@/hooks/useTestAnalytics";
-import { NotifProvider } from "@/providers/NotifProvider/NotifProvider";
+import NotifContext, {
+  NotifProvider,
+  NotifType,
+} from "@/providers/NotifProvider/NotifProvider";
+import instance from "@/lib/backend-connect";
+import { useParams } from "next/navigation";
+import { AxiosError } from "axios";
 
 const MOCK_QUESTIONS = [
   {
@@ -219,6 +225,10 @@ export default function TestProvider({
 }: {
   children: React.ReactNode;
 }) {
+  const { testId } = useParams();
+  const { getSnapshot } = useContext(WebCamContext);
+  const { exitFullscreen } = useContext(ScreenContext);
+
   const [answerState, setAnswerState] = useState<AnswerState[]>([]);
   const [isTestStarted, setIsTestStarted] = useState<boolean>(false);
   const [testLoading, setTestLoading] = useState<boolean>(false);
@@ -231,17 +241,29 @@ export default function TestProvider({
   const [bannedFromTest, setBannedFromTest] = useState<boolean>(false);
   const [warningScreen, setWarningScreen] = useState<boolean>(false);
 
+  const { addNotif } = useContext(NotifContext);
+
   const testScreenEl = createRef<HTMLDivElement>();
 
   const showViolationScreen = () => {
     setBannedFromTest(true);
+    instance.get(`/test/${testId}/end-test`).then((res) => {
+      console.log(res);
+      addNotif({
+        type: NotifType.ERROR,
+        title: "Test Ended",
+        body: "You have been banned from the test.",
+      });
+      setTestEnd(true);
+      exitFullscreen();
+    });
   };
 
   const showWarningScreen = () => {
     setWarningScreen(true);
   };
 
-  const { startService } = useTestAnalytics({
+  const { startService, stopService } = useTestAnalytics({
     showViolationScreen,
     showWarningScreen,
   });
@@ -295,11 +317,41 @@ export default function TestProvider({
   const startTest = async () => {
     setTestLoading(true);
     startService(testScreenEl.current!);
+
+    // Start the session
+    const formData = new FormData();
+    const snapshot = await getSnapshot();
+    console.log({ snapshot });
+    formData.append("face", snapshot);
+
+    try {
+      const res = await instance.post(`/test/${testId}/start-test`, formData);
+      console.log(res);
+    } catch (e) {
+      console.error(e);
+      stopService();
+      exitFullscreen();
+      if (e instanceof AxiosError) {
+        addNotif({
+          type: NotifType.ERROR,
+          title: "Error starting test.",
+          body:
+            e.response?.data.error ??
+            e.response?.data.message ??
+            "An unknown error occurred.",
+        });
+      } else {
+        addNotif({
+          type: NotifType.ERROR,
+          title: "Error starting test.",
+          body: "An unknown error occurred.",
+        });
+      }
+      setTestLoading(false);
+      return;
+    }
+
     // Fetch question ids
-    await (async () => {
-      // Sleep for 7 second
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-    })();
     const questionIds = await _fetchQuestionIds();
     setAnswerState(
       questionIds.map((questionId) => ({
@@ -340,7 +392,9 @@ export default function TestProvider({
   };
 
   const _fetchQuestionIds = async () => {
-    const questionIds = MOCK_QUESTIONS.map((q) => q.index.toString());
+    const res = await instance.get(`/test/${testId}`);
+    const q = res.data.data.questions as Question[];
+    const questionIds = q.map((q) => q.id.toString());
     return questionIds;
   };
 

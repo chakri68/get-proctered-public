@@ -19,24 +19,22 @@ model User {
 }
 
 model Test {
-  id              String        @id @default(auto()) @map("_id") @db.ObjectId
-  name            String
-  faceDescriptors Float[]
-  user            User          @relation(fields: [userId], references: [id])
-  userId          String        @map("userId") @db.ObjectId
-  TestSession     TestSession[]
-  questions       Json
-  TestTaker       TestTaker[]
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  user        User          @relation(fields: [userId], references: [id])
+  userId      String        @map("userId") @db.ObjectId
+  TestSession TestSession[]
+  questions   Json
+  TestTaker   TestTaker[]
 }
 
 model TestSession {
-  id              String  @id @default(auto()) @map("_id") @db.ObjectId
-  test            Test    @relation(fields: [testId], references: [id])
-  testId          String  @map("testId") @db.ObjectId
-  user            User    @relation(fields: [userId], references: [id])
-  userId          String  @map("userId") @db.ObjectId
-  faceDescriptors Float[]
-  status          String
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  test   Test   @relation(fields: [testId], references: [id])
+  testId String @map("testId") @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @map("userId") @db.ObjectId
+  status String
 
   startTime DateTime
   endTime   DateTime?
@@ -45,16 +43,13 @@ model TestSession {
 }
 
 model TestTaker {
-  id              String  @id @default(auto()) @map("_id") @db.ObjectId
-  test            Test    @relation(fields: [testId], references: [id])
-  testId          String  @map("testId") @db.ObjectId
-  user            User    @relation(fields: [userId], references: [id])
-  userId          String  @map("userId") @db.ObjectId
-  faceDescriptors Float[]
-  status          String
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  test   Test   @relation(fields: [testId], references: [id])
+  testId String @map("testId") @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @map("userId") @db.ObjectId
+  status String
 
   startTime DateTime
   endTime   DateTime?
-  answers   Json
-  events    Json
 }
