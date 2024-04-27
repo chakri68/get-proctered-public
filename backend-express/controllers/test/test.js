@@ -88,7 +88,9 @@ router.post("/:id/start-test", upload.single("face"), async (req, res) => {
         data: {
           events: [
             {
-              type: "SESSION_RESTART",
+              code: "SESSION_RESTART",
+              message: "Session restarted",
+              severity: "INFO",
               timestamp: new Date(),
             },
             ...prevEvents,
@@ -107,7 +109,9 @@ router.post("/:id/start-test", upload.single("face"), async (req, res) => {
         status: "IN_PROGRESS",
         events: [
           {
-            type: "SESSION_START",
+            code: "SESSION_START",
+            message: "Session started",
+            severity: "INFO",
             timestamp: new Date(),
           },
         ],
@@ -307,7 +311,9 @@ router.get("/:id/end-test", async (req, res) => {
         events: [
           ...prevEvents,
           {
-            type: "SESSION_END",
+            code: "SESSION_END",
+            message: "Session ended",
+            severity: "INFO",
             timestamp: new Date(),
           },
         ],
@@ -384,7 +390,9 @@ router.post("/:id/ping", upload.single("face"), async (req, res) => {
           events: [
             ...prevEvents,
             {
-              type: "SESSION_SUSPENDED",
+              code: "FACE_MISMATCH",
+              message: "Face mismatch",
+              severity: "ERROR",
               timestamp: new Date(),
             },
           ],
