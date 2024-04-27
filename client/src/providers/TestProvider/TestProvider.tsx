@@ -1,8 +1,14 @@
-import { createContext, useContext, useState, createRef } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  createRef,
+  useEffect,
+} from "react";
 import { WebCamContext } from "@/providers/WebCamProvider/WebCamProvider";
 import { ScreenContext } from "@/providers/ScreenContext/ScreenContext";
 import useTestAnalytics from "@/hooks/useTestAnalytics";
-import { NotifProvider } from "../NotifProvider/NotifProvider";
+import { NotifProvider } from "@/providers/NotifProvider/NotifProvider";
 
 const MOCK_QUESTIONS = [
   {
@@ -166,22 +172,7 @@ export type Option = {
   text: string;
 };
 
-export enum ErrorCode {
-  INVALID_QUESTION_ID = "INVALID_QUESTION_ID",
-  INVALID_OPTION_ID = "INVALID_OPTION_ID",
-  INVALID_ANSWER = "INVALID_ANSWER",
-  RECORDING_STOPPED = "RECORDING_STOPPED",
-  FULLSCREEN_EXIT = "FULLSCREEN_EXIT",
-}
-
-export type Error = {
-  message: string;
-  code: ErrorCode;
-};
-
 export const TestContext = createContext<{
-  errors: Error[];
-  setErrors: (errors: Error[]) => void;
   answerState: AnswerState[];
   saveResponse: (questionId: string, optionId: string) => void;
   markForReview: (questionId: string, optionId: string | null) => void;
@@ -195,10 +186,11 @@ export const TestContext = createContext<{
   goToNextQuestion: () => void;
   goToQuestion: (questionId: string) => void;
   showViolationScreen: () => void;
+  showWarningScreen: () => void;
   bannedFromTest: boolean;
+  warningScreen: boolean;
+  continueFromWarning: () => void;
 }>({
-  errors: [],
-  setErrors: () => {},
   answerState: [],
   saveResponse: () => {},
   markForReview: () => {},
@@ -216,7 +208,10 @@ export const TestContext = createContext<{
   goToNextQuestion: () => {},
   goToQuestion: () => {},
   showViolationScreen: () => {},
+  showWarningScreen: () => {},
   bannedFromTest: false,
+  warningScreen: false,
+  continueFromWarning: () => {},
 });
 
 export default function TestProvider({
@@ -224,9 +219,6 @@ export default function TestProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const { isRecording } = useContext(WebCamContext);
-  const { isFullScreen, makeFullscreen } = useContext(ScreenContext);
-  const [errors, setErrors] = useState<Error[]>([]);
   const [answerState, setAnswerState] = useState<AnswerState[]>([]);
   const [isTestStarted, setIsTestStarted] = useState<boolean>(false);
   const [testLoading, setTestLoading] = useState<boolean>(false);
@@ -237,20 +229,21 @@ export default function TestProvider({
   });
   const [testEnd, setTestEnd] = useState<boolean>(false);
   const [bannedFromTest, setBannedFromTest] = useState<boolean>(false);
+  const [warningScreen, setWarningScreen] = useState<boolean>(false);
 
   const testScreenEl = createRef<HTMLDivElement>();
-
-  const onTestError = (err: Error) => {
-    setErrors((prev) => [...prev, err]);
-  };
 
   const showViolationScreen = () => {
     setBannedFromTest(true);
   };
 
+  const showWarningScreen = () => {
+    setWarningScreen(true);
+  };
+
   const { startService } = useTestAnalytics({
-    onError: onTestError,
     showViolationScreen,
+    showWarningScreen,
   });
 
   const goToNextQuestion = () => {
@@ -355,12 +348,15 @@ export default function TestProvider({
     return Object.keys(answerState).length;
   };
 
+  const handleWarningClose = () => {
+    startService(testScreenEl.current!);
+    setWarningScreen(false);
+  };
+
   return (
     <TestContext.Provider
       value={{
-        errors,
         answerState,
-        setErrors,
         saveResponse,
         markForReview,
         clearResponse,
@@ -373,7 +369,10 @@ export default function TestProvider({
         goToNextQuestion,
         goToQuestion,
         showViolationScreen,
+        showWarningScreen,
         bannedFromTest,
+        warningScreen,
+        continueFromWarning: handleWarningClose,
       }}
     >
       <div id="test-screen" ref={testScreenEl}>

@@ -2,25 +2,24 @@ import NotifContext, {
   NotifType,
 } from "@/providers/NotifProvider/NotifProvider";
 import { ScreenContext } from "@/providers/ScreenContext/ScreenContext";
-import { Error, ErrorCode } from "@/providers/TestProvider/TestProvider";
-import { WebCamContext } from "@/providers/WebCamProvider/WebCamProvider";
 import { useContext, useEffect, useRef, useState } from "react";
+import { ViolationContext } from "../providers/ViolationProvider/ViolationProvider";
 
 export default function useTestAnalytics({
-  onError,
   showViolationScreen,
+  showWarningScreen,
 }: {
-  onError: (error: Error) => void;
   showViolationScreen: () => void;
+  showWarningScreen: () => void;
 }) {
-  const { isRecording } = useContext(WebCamContext);
-  const { isFullScreen, makeFullscreen } = useContext(ScreenContext);
+  const { violations } = useContext(ViolationContext);
+
+  const { makeFullscreen } = useContext(ScreenContext);
   const { addNotif, notifs, removeNotif } = useContext(NotifContext);
 
-  const fullScreenExitNotifRef = useRef<string | null>(null);
-  const fullScreenCount = useRef<number>(0);
-
   const [serviceStarted, setServiceStarted] = useState<boolean>(false);
+
+  const notifRefs = useRef<string[]>([]);
 
   useEffect(() => {
     if (serviceStarted) {
@@ -35,49 +34,38 @@ export default function useTestAnalytics({
   }, [serviceStarted]);
 
   useEffect(() => {
-    if (!serviceStarted) return;
-    if (!isRecording) {
-      onError({
-        code: ErrorCode.RECORDING_STOPPED,
-        message: "Recording stopped unexpectedly",
-      });
-    }
-  }, [isRecording]);
-
-  useEffect(() => {
-    if (!serviceStarted) return;
-    if (!isFullScreen) {
-      fullScreenCount.current++;
-      if (fullScreenCount.current > 0) {
+    const newViolation = violations[violations.length - 1];
+    if (newViolation) {
+      notifRefs.current.push(
+        addNotif({
+          body: "You have violated the test rules",
+          title: `Violation ${newViolation.code}`,
+          type:
+            newViolation.severity === "error"
+              ? NotifType.ERROR
+              : NotifType.WARNING,
+          closeable: true,
+        })
+      );
+      if (newViolation.severity === "error") {
         showViolationScreen();
-      }
-      if (fullScreenExitNotifRef.current === null) {
-        fullScreenExitNotifRef.current = addNotif({
-          body: "Exited fullscreen unexpectedly",
-          title: "Test Analytics",
-          type: NotifType.ERROR,
-          closeable: false,
-        });
       } else {
-        removeNotif(fullScreenExitNotifRef.current);
-        fullScreenExitNotifRef.current = addNotif({
-          body: "Exited fullscreen unexpectedly",
-          title: "Test Analytics",
-          type: NotifType.ERROR,
-          closeable: false,
-        });
+        showWarningScreen();
       }
-      onError({
-        code: ErrorCode.FULLSCREEN_EXIT,
-        message: "Exited fullscreen unexpectedly",
-      });
-    } else {
-      if (fullScreenExitNotifRef.current)
-        removeNotif(fullScreenExitNotifRef.current);
     }
-  }, [isFullScreen]);
+  }, [violations]);
 
   const startService = (el: HTMLElement) => {
+    if (serviceStarted) {
+      // Clear all notifications
+      notifRefs.current.forEach((ref) => removeNotif(ref));
+      // Check the last violation
+      const lastViolation = violations[violations.length - 1];
+      if (lastViolation && lastViolation.code === "FULLSCREEN_CLOSE") {
+        makeFullscreen(el);
+      }
+      return;
+    }
     setServiceStarted(true);
     makeFullscreen(el);
   };

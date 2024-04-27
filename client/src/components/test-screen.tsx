@@ -45,10 +45,51 @@ export function TestScreen() {
     currentQuestion,
     goToQuestion,
     bannedFromTest,
+    warningScreen,
+    continueFromWarning,
   } = useContext(TestContext);
 
   if (testLoading) return <TestSkeletonScreen />;
   if (bannedFromTest) return <TestViolationScreen />;
+  if (warningScreen) {
+    return (
+      <div className="flex h-screen w-full">
+        <div className="bg-gray-100 dark:bg-gray-800 p-6 flex flex-col gap-6 rounded-md w-full">
+          <div className="flex items-center justify-between">
+            <div className="text-lg font-semibold">Time Remaining: 00:45</div>
+            <div className="flex items-center gap-2">
+              <Button size="sm" variant="outline">
+                <ClockIcon className="w-4 h-4 mr-2" />
+                Pause
+              </Button>
+              <Button size="sm" variant="outline">
+                <XIcon className="w-4 h-4 mr-2" />
+                End Test
+              </Button>
+            </div>
+          </div>
+          <div className="flex-1 grid place-items-center">
+            <div className="bg-white dark:bg-gray-900 rounded-lg p-6 shadow w-[32rem] m-auto">
+              <div className="text-lg font-semibold mb-4">
+                You have been warned
+              </div>
+              <div className="mb-4">
+                You have been warned for violating the test rules. You can
+                continue the test but your actions will be recorded.
+              </div>
+              <Button
+                onClick={() => {
+                  continueFromWarning();
+                }}
+              >
+                Continue
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const renderCurrentQuestion = (questionNum: string) => (
     <div className="bg-gray-900 text-white px-3 py-1 rounded-full text-sm font-medium dark:bg-gray-50">
