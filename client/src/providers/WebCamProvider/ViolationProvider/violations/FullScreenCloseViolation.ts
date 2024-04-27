@@ -9,35 +9,11 @@ export default class FullScreenCloseViolation extends GenericViolation<"FULLSCRE
 
   setup() {
     document.addEventListener("fullscreenchange", this.handleFullScreenChange);
-    document.addEventListener(
-      "webkitfullscreenchange",
-      this.handleFullScreenChange.bind(this)
-    );
-    document.addEventListener(
-      "mozfullscreenchange",
-      this.handleFullScreenChange.bind(this)
-    );
-    document.addEventListener(
-      "MSFullscreenChange",
-      this.handleFullScreenChange.bind(this)
-    );
   }
 
   teardown() {
     document.removeEventListener(
       "fullscreenchange",
-      this.handleFullScreenChange.bind(this)
-    );
-    document.removeEventListener(
-      "webkitfullscreenchange",
-      this.handleFullScreenChange.bind(this)
-    );
-    document.removeEventListener(
-      "mozfullscreenchange",
-      this.handleFullScreenChange.bind(this)
-    );
-    document.removeEventListener(
-      "MSFullscreenChange",
       this.handleFullScreenChange.bind(this)
     );
   }
