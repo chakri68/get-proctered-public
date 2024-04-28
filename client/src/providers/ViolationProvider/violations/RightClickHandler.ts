@@ -12,10 +12,7 @@ export default class RightClickHandler extends GenericViolation<"DONT_CLICK"> {
   }
 
   teardown() {
-    document.removeEventListener(
-      "contextmenu",
-      this.handleRightClick.bind(this)
-    );
+    document.removeEventListener("contextmenu", this.handleRightClick);
   }
 
   _handleRightClick = (e: MouseEvent) => {
