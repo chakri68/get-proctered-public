@@ -26,7 +26,8 @@
     "react-webcam": "^7.2.0",
     "strip-ansi": "^7.1.0",
     "tailwind-merge": "^2.3.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "tslib": "^2.6.2"
   },
   "devDependencies": {
     "@types/node": "^20",
