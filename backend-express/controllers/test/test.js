@@ -15,7 +15,6 @@ router.use(checkAuth);
 
 router.post("/:id/start-test", upload.single("face"), async (req, res) => {
   try {
-    console.log({ req });
     if (!req.user) throw new Error("Not Authorized");
     const { id: userId } = req.user;
     const file = req.file;
@@ -69,11 +68,17 @@ router.post("/:id/start-test", upload.single("face"), async (req, res) => {
     const testSession = await prisma.testSession.findFirst({
       where: {
         testId: id,
-        status: "IN_PROGRESS",
+        userId: userId,
       },
     });
 
-    if (testSession) {
+    if (testSession && testSession.status === "COMPLETED") {
+      return res.status(400).json({
+        message: "Test session already completed",
+      });
+    }
+
+    if (testSession && testSession.status === "IN_PROGRESS") {
       const prevEvents = testSession.events || [];
       if (!Array.isArray(prevEvents)) {
         return res.status(400).json({
@@ -173,9 +178,11 @@ router.post("/:id/submit-answer", async (req, res) => {
     }
 
     const updatedAnswers = [
-      ...answers,
+      // @ts-ignore
+      ...answers.filter((a) => a.questionId !== answer.questionId),
       {
-        answer,
+        // { questionId: string, optionId: string }
+        ...answer,
         timestamp: new Date(),
       },
     ];

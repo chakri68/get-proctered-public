@@ -26,16 +26,6 @@ import {
 import { useContext, useEffect, useState } from "react";
 import { TestSkeletonScreen } from "./test-skeleton-screen";
 import { TestViolationScreen } from "./test-violation-screen";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
-import { FilterIcon } from "lucide-react";
-import FaceCam from "./face-cam";
 import WebcamCapture from "./WebCam";
 
 export function TestScreen() {
@@ -47,7 +37,11 @@ export function TestScreen() {
     bannedFromTest,
     warningScreen,
     continueFromWarning,
+    submitTest,
+    testEnd,
   } = useContext(TestContext);
+
+  const [fullLoad, setFullLoad] = useState(false);
 
   if (testLoading) return <TestSkeletonScreen />;
   if (bannedFromTest) return <TestViolationScreen />;
@@ -55,19 +49,6 @@ export function TestScreen() {
     return (
       <div className="flex h-screen w-full">
         <div className="bg-gray-100 dark:bg-gray-800 p-6 flex flex-col gap-6 rounded-md w-full">
-          <div className="flex items-center justify-between">
-            <div className="text-lg font-semibold">Time Remaining: 00:45</div>
-            <div className="flex items-center gap-2">
-              <Button size="sm" variant="outline">
-                <ClockIcon className="w-4 h-4 mr-2" />
-                Pause
-              </Button>
-              <Button size="sm" variant="outline">
-                <XIcon className="w-4 h-4 mr-2" />
-                End Test
-              </Button>
-            </div>
-          </div>
           <div className="flex-1 grid place-items-center">
             <div className="bg-white dark:bg-gray-900 rounded-lg p-6 shadow w-[32rem] m-auto">
               <div className="text-lg font-semibold mb-4">
@@ -91,6 +72,24 @@ export function TestScreen() {
     );
   }
 
+  if (testEnd) {
+    return (
+      <div className="flex h-screen w-full">
+        <div className="bg-gray-100 dark:bg-gray-800 p-6 flex flex-col gap-6 rounded-md w-full">
+          <div className="flex-1 grid place-items-center">
+            <div className="bg-white dark:bg-gray-900 rounded-lg p-6 shadow w-[32rem] m-auto">
+              <div className="text-lg font-semibold mb-4">Test Ended</div>
+              <div className="mb-4">
+                You have successfully completed the test. Your responses have
+                been recorded.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const renderCurrentQuestion = (questionNum: string) => (
     <div className="bg-gray-900 text-white px-3 py-1 rounded-full text-sm font-medium dark:bg-gray-50">
       {questionNum}
@@ -100,8 +99,10 @@ export function TestScreen() {
   const renderUnVisitedQuestion = (questionNum: string) => (
     <div
       className="bg-gray-200 dark:bg-gray-700 px-3 py-1 cursor-pointer rounded-full text-sm font-medium text-gray-500 dark:text-gray-400"
-      onClick={() => {
-        goToQuestion(questionNum);
+      onClick={async () => {
+        setFullLoad(true);
+        await goToQuestion(questionNum);
+        setFullLoad(false);
       }}
     >
       {questionNum}
@@ -112,8 +113,10 @@ export function TestScreen() {
     // Green bg for answered questions
     <div
       className="bg-green-500 dark:bg-green-400 px-3 py-1 cursor-pointer rounded-full text-sm font-medium text-white dark:text-gray-400"
-      onClick={() => {
+      onClick={async () => {
+        setFullLoad(true);
         goToQuestion(questionNum);
+        setFullLoad(false);
       }}
     >
       {questionNum}
@@ -124,8 +127,10 @@ export function TestScreen() {
     // Purple bg for marked questions
     <div
       className="bg-purple-500 dark:bg-purple-400 px-3 py-1 cursor-pointer rounded-full text-sm font-medium text-white dark:text-gray-400"
-      onClick={() => {
+      onClick={async () => {
+        setFullLoad(true);
         goToQuestion(questionNum);
+        setFullLoad(false);
       }}
     >
       {questionNum}
@@ -142,7 +147,15 @@ export function TestScreen() {
               <ClockIcon className="w-4 h-4 mr-2" />
               Pause
             </Button>
-            <Button size="sm" variant="outline">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={async () => {
+                setFullLoad(true);
+                await submitTest();
+                setFullLoad(false);
+              }}
+            >
               <XIcon className="w-4 h-4 mr-2" />
               End Test
             </Button>
@@ -165,7 +178,7 @@ export function TestScreen() {
               })}
             </div>
 
-            <QuestionCard />
+            {fullLoad ? <TestSkeletonScreen /> : <QuestionCard />}
             <WebcamCapture />
           </div>
         </div>
@@ -183,6 +196,10 @@ function QuestionCard() {
     answerState,
     goToNextQuestion,
   } = useContext(TestContext);
+
+  const [nextLoading, setNextLoading] = useState(false);
+  const [markedForReviewLoading, setMarkedForReviewLoading] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
 
   const [selectedOption, setSelectedOption] = useState<string | null>(
     answerState.find((ans) => ans.questionId === currentQuestion.id)
@@ -240,30 +257,41 @@ function QuestionCard() {
       <div className="mt-4 flex justify-between">
         <Button
           variant="outline"
-          disabled={!selectedOption}
-          onClick={() => {
-            saveResponse(currentQuestion.id, selectedOption!);
+          loading={nextLoading}
+          disabled={nextLoading}
+          onClick={async () => {
+            setNextLoading(true);
+            await goToNextQuestion();
+            setNextLoading(false);
           }}
         >
-          <SaveIcon className="w-4 h-4 mr-2" />
-          Save
+          <ArrowRightIcon className="w-4 h-4 mr-2" />
+          Next
         </Button>
         <Button
           variant="outline"
-          onClick={() => {
-            markForReview(currentQuestion.id, selectedOption);
+          loading={markedForReviewLoading}
+          onClick={async () => {
+            setMarkedForReviewLoading(true);
+            await markForReview(currentQuestion.id, selectedOption);
+            setMarkedForReviewLoading(false);
           }}
         >
           <FlagIcon className="w-4 h-4 mr-2" />
           Mark for Review
         </Button>
+
         <Button
-          onClick={() => {
-            goToNextQuestion();
+          disabled={!selectedOption}
+          loading={saveLoading}
+          onClick={async () => {
+            setSaveLoading(true);
+            await saveResponse(currentQuestion.id, selectedOption!);
+            setSaveLoading(false);
           }}
         >
-          <ArrowRightIcon className="w-4 h-4 mr-2" />
-          Next
+          <SaveIcon className="w-4 h-4 mr-2" />
+          Save
         </Button>
       </div>
     </div>

@@ -180,29 +180,30 @@ export type Option = {
 
 export const TestContext = createContext<{
   answerState: AnswerState[];
-  saveResponse: (questionId: string, optionId: string) => void;
-  markForReview: (questionId: string, optionId: string | null) => void;
-  clearResponse: (questionId: string) => void;
-  submitTest: () => void;
-  startTest: () => void;
+  saveResponse: (questionId: string, optionId: string) => Promise<void>;
+  markForReview: (questionId: string, optionId: string | null) => Promise<void>;
+  clearResponse: (questionId: string) => Promise<void>;
+  submitTest: () => Promise<void>;
+  startTest: () => Promise<void>;
   isTestStarted: boolean;
   getQuestionCount: () => number;
   testLoading: boolean;
   currentQuestion: Question;
-  goToNextQuestion: () => void;
-  goToQuestion: (questionId: string) => void;
+  goToNextQuestion: () => Promise<void>;
+  goToQuestion: (questionId: string) => Promise<void>;
   showViolationScreen: () => void;
   showWarningScreen: () => void;
   bannedFromTest: boolean;
   warningScreen: boolean;
   continueFromWarning: () => void;
+  testEnd: boolean;
 }>({
   answerState: [],
-  saveResponse: () => {},
-  markForReview: () => {},
-  clearResponse: () => {},
-  submitTest: () => {},
-  startTest: () => {},
+  saveResponse: () => new Promise(() => {}),
+  markForReview: () => new Promise(() => {}),
+  clearResponse: () => new Promise(() => {}),
+  submitTest: () => new Promise(() => {}),
+  startTest: () => new Promise(() => {}),
   isTestStarted: false,
   getQuestionCount: () => 0,
   testLoading: false,
@@ -211,13 +212,14 @@ export const TestContext = createContext<{
     question: "",
     options: [],
   },
-  goToNextQuestion: () => {},
-  goToQuestion: () => {},
+  goToNextQuestion: () => new Promise(() => {}),
+  goToQuestion: () => new Promise(() => {}),
   showViolationScreen: () => {},
   showWarningScreen: () => {},
   bannedFromTest: false,
   warningScreen: false,
   continueFromWarning: () => {},
+  testEnd: false,
 });
 
 export default function TestProvider({
@@ -268,21 +270,24 @@ export default function TestProvider({
     showWarningScreen,
   });
 
-  const goToNextQuestion = () => {
+  const goToNextQuestion = async () => {
     const nextQuestionId =
       answerState.findIndex((ans) => ans.questionId === currentQuestion.id) + 1;
     if (nextQuestionId >= answerState.length) {
       return;
     }
 
-    _fetchQuestion(answerState[nextQuestionId].questionId);
+    await _fetchQuestion(answerState[nextQuestionId].questionId);
   };
 
-  const goToQuestion = (questionId: string) => {
-    _fetchQuestion(questionId);
+  const goToQuestion = async (questionId: string) => {
+    await _fetchQuestion(questionId);
   };
 
-  const saveResponse = (questionId: string, optionId: string) => {
+  const saveResponse = async (questionId: string, optionId: string) => {
+    await instance.post(`/test/${testId}/submit-answer`, {
+      answer: { questionId, optionId },
+    });
     setAnswerState((prev) => {
       const n = [...prev];
       const ans = n.find((ans) => ans.questionId === questionId)!;
@@ -293,7 +298,10 @@ export default function TestProvider({
     goToNextQuestion();
   };
 
-  const markForReview = (questionId: string, optionId: string | null) => {
+  const markForReview = async (questionId: string, optionId: string | null) => {
+    await instance.post(`/test/${testId}/submit-answer`, {
+      answer: { questionId, optionId },
+    });
     setAnswerState((prev) => {
       const n = [...prev];
       const ans = n.find((ans) => ans.questionId === questionId)!;
@@ -304,7 +312,10 @@ export default function TestProvider({
     goToNextQuestion();
   };
 
-  const clearResponse = (questionId: string) => {
+  const clearResponse = async (questionId: string) => {
+    await instance.post(`/test/${testId}/submit-answer`, {
+      answer: { questionId, optionId: null },
+    });
     setAnswerState((prev) => {
       const n = [...prev];
       const ans = n.find((ans) => ans.questionId === questionId)!;
@@ -368,27 +379,29 @@ export default function TestProvider({
     setIsTestStarted(true);
   };
 
-  const submitTest = () => {
-    console.log("Submitting test");
+  const submitTest = async () => {
+    setTestLoading(true);
+    await instance.get(`/test/${testId}/end-test`);
+    setTestLoading(false);
+    stopService();
+    exitFullscreen();
+    setTestEnd(true);
   };
 
   const _fetchQuestion = async (questionId: string) => {
-    // Fetch question data from the server
-    setTestLoading(true);
     // Fetch question data
-    const question = MOCK_QUESTIONS.find(
-      (q) => q.index.toString() === questionId
-    ) as (typeof MOCK_QUESTIONS)[number];
+    const res = await instance.get(`/test/${testId}`);
+    const q = res.data.data.questions as Question[];
+    const questionIds = q.map((q) => q.id.toString());
+    const question = q.find((q) => q.id.toString() === questionId)!;
     setCurrentQuestion({
       id: questionId,
       question: question.question,
       options: question.options.map((option, index) => ({
         id: index.toString(),
-        text: option,
+        text: option.text,
       })),
     });
-
-    setTestLoading(false);
   };
 
   const _fetchQuestionIds = async () => {
@@ -427,6 +440,7 @@ export default function TestProvider({
         bannedFromTest,
         warningScreen,
         continueFromWarning: handleWarningClose,
+        testEnd,
       }}
     >
       <div id="test-screen" ref={testScreenEl}>

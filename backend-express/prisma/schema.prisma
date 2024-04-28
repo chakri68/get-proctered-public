@@ -24,7 +24,7 @@ model Test {
   user        User          @relation(fields: [userId], references: [id])
   userId      String        @map("userId") @db.ObjectId
   TestSession TestSession[]
-  questions   Json
+  questions   Json // { id: string, question: string, options: { id: string, option: string, isCorrect: boolean }[] }[]
   TestTaker   TestTaker[]
 }
 

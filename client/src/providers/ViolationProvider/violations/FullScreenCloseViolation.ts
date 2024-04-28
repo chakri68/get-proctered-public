@@ -54,7 +54,7 @@ export default class FullScreenCloseViolation extends GenericViolation<"FULLSCRE
     ) {
       this.count++;
       const newInstance = {
-        timestamp: Date.now(),
+        timestamp: new Date(),
         severity: (this.count > 2 ? "error" : "warning") as "error" | "warning",
       };
       this.instances.push(newInstance);

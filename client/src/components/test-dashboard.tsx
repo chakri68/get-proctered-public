@@ -42,6 +42,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import instance from "@/lib/backend-connect";
 import { useEffect, useState } from "react";
+import { timeSpentFrom } from "../lib/date";
 
 export function TestDashboard() {
   const [violations, setViolations] = useState<
@@ -50,6 +51,7 @@ export function TestDashboard() {
       student: string;
       violation: string;
       severity: string;
+      timestamp: string;
     }[]
   >([]);
 
@@ -65,9 +67,15 @@ export function TestDashboard() {
             student: t.user.name,
             violation: e.code,
             severity: e.severity,
+            timestamp: e.timestamp,
           }))
         )
         .flat()
+        .toSorted(
+          (a: any, b: any) =>
+            new Date(b.timestamp as string).getTime() -
+            new Date(a.timestamp as string).getTime()
+        )
     );
   };
 
@@ -301,6 +309,7 @@ export function TestDashboard() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Timestamp</TableHead>
                   <TableHead>Test</TableHead>
                   <TableHead>Student</TableHead>
                   <TableHead>Violation</TableHead>
@@ -311,6 +320,7 @@ export function TestDashboard() {
               <TableBody>
                 {violations.map((v, idx) => (
                   <TableRow key={idx}>
+                    <TableCell>{timeSpentFrom(v.timestamp)}</TableCell>
                     <TableCell>{v.test}</TableCell>
                     <TableCell>{v.student}</TableCell>
                     <TableCell>{v.violation}</TableCell>

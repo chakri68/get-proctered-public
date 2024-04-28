@@ -5,7 +5,7 @@ export default class GenericViolation<T extends ViolationCode>
   implements Violation<ViolationCode>
 {
   code: T;
-  instances: { timestamp: number; severity: "error" | "warning" }[] = [];
+  instances: { timestamp: Date; severity: "error" | "warning" }[] = [];
   callbacks: ((violation: GenericViolation<T>) => void)[] = [];
 
   constructor(code: T) {

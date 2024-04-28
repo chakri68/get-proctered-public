@@ -65,6 +65,7 @@ export default function useTestAnalytics({
         })
       );
       if (newViolation.severity === "error") {
+        console.log({ newViolation });
         showViolationScreen();
       } else {
         showWarningScreen();

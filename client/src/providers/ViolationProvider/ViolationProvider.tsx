@@ -4,7 +4,7 @@ import Violation from "./Violation";
 
 type ViolationState = {
   code: ViolationCode;
-  timestamp: number;
+  timestamp: Date;
   severity: "error" | "warning";
 };
 
