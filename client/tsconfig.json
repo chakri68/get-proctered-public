@@ -32,7 +32,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts"
-, "src/app/dashboard"  ],
+, "src/app/dashboard", "src/components/ui/footer.tsx"  ],
   "exclude": [
     "node_modules"
   ]

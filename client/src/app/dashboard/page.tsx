@@ -1,13 +1,13 @@
 import { TestDashboard } from "@/components/test-dashboard";
 import Header from "@/components/ui/header";
+import Footer from "@/components/ui/footer";
 
 export default function DashboardPage() {
   return (
     <>
     <Header />
-    {/* <div className="mt-4"> */}
     <TestDashboard/>
-    {/* </div> */}
+    <Footer />
     </>
   )
 }
