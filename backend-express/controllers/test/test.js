@@ -78,33 +78,9 @@ router.post("/:id/start-test", upload.single("face"), async (req, res) => {
       });
     }
 
-    if (testSession && testSession.status === "IN_PROGRESS") {
-      const prevEvents = testSession.events || [];
-      if (!Array.isArray(prevEvents)) {
-        return res.status(400).json({
-          message: "Invalid test session",
-        });
-      }
-      // Store it as an event
-      await prisma.testSession.update({
-        where: {
-          id: testSession.id,
-        },
-        data: {
-          events: [
-            {
-              code: "SESSION_RESTART",
-              message: "Session restarted",
-              severity: "INFO",
-              timestamp: new Date(),
-            },
-            ...prevEvents,
-          ],
-        },
-      });
-
+    if (testSession && testSession.status === "BANNED") {
       return res.status(400).json({
-        message: "Test session already in progress",
+        message: "User banned from test",
       });
     }
 
@@ -272,9 +248,11 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/:id/end-test", async (req, res) => {
+router.post("/:id/end-test", async (req, res) => {
   try {
     const { id } = req.params;
+    // SUSPENDED, COMPLETED, TIMEOUT
+    const { reason } = req.body;
     const user = req.user;
     if (!user) throw new Error("Not Authorized");
 
@@ -308,12 +286,25 @@ router.get("/:id/end-test", async (req, res) => {
       });
     }
 
+    const status = (() => {
+      switch (reason) {
+        case "SUSPENDED":
+          return "BANNED";
+        case "COMPLETED":
+          return "COMPLETED";
+        case "TIMEOUT":
+          return "TIMEOUT";
+        default:
+          return "COMPLETED";
+      }
+    })();
+
     await prisma.testSession.update({
       where: {
         id: testSession.id,
       },
       data: {
-        status: "COMPLETED",
+        status,
         endTime: new Date(),
         events: [
           ...prevEvents,

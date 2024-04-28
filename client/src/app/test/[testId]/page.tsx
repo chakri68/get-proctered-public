@@ -8,31 +8,33 @@ import TestProvider, {
   TestContext,
 } from "@/providers/TestProvider/TestProvider";
 import WebCamProvider from "@/providers/WebCamProvider/WebCamProvider";
+import { Toaster } from "react-hot-toast";
 
 export default function TestPage() {
   return (
-    <ScreenProvider>
-      <WebCamProvider>
-        <ViolationProvider>
-          <TestProvider>
-            <TestContext.Consumer>
-              {({ isTestStarted, testLoading }) => {
-                if (!isTestStarted && !testLoading) {
-                  return (
-                    <div className="w-screen h-screen grid place-items-center">
-                      <div className="w-96">
+    <>
+      <Toaster />
+      <ScreenProvider>
+        <WebCamProvider>
+          <ViolationProvider>
+            <TestProvider>
+              <TestContext.Consumer>
+                {({ isTestStarted, testLoading }) => {
+                  if (!isTestStarted && !testLoading) {
+                    return (
+                      <div className="w-screen h-screen grid place-items-center">
                         <StartScreen />
                       </div>
-                    </div>
-                  );
-                } else {
-                  return <TestScreen />;
-                }
-              }}
-            </TestContext.Consumer>
-          </TestProvider>
-        </ViolationProvider>
-      </WebCamProvider>
-    </ScreenProvider>
+                    );
+                  } else {
+                    return <TestScreen />;
+                  }
+                }}
+              </TestContext.Consumer>
+            </TestProvider>
+          </ViolationProvider>
+        </WebCamProvider>
+      </ScreenProvider>
+    </>
   );
 }

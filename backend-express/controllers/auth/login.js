@@ -54,7 +54,7 @@ router.post("/", upload.single("face"), async (req, res) => {
     // Login successful
     // Set the cookie and return the user
     const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, {
-      expiresIn: "1h",
+      expiresIn: "6h",
     });
 
     res.cookie("auth-token", token, {
@@ -94,7 +94,7 @@ router.put("/", async (req, res) => {
   // Login successful
   // Set the cookie and return the user
   const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, {
-    expiresIn: "1h",
+    expiresIn: "6h",
   });
 
   res.cookie("auth-token", token, {

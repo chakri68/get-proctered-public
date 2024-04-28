@@ -27,13 +27,26 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { WebCamContext } from "@/providers/WebCamProvider/WebCamProvider";
 import { TestContext } from "@/providers/TestProvider/TestProvider";
+import { LoginScreen } from "./login-screen";
+import toast from "react-hot-toast";
 
 export function StartScreen() {
   const { isRecording, resumeRecording } = useContext(WebCamContext);
-  const { startTest } = useContext(TestContext);
+  const { startTest, registered, registerUser } = useContext(TestContext);
+
+  if (!registered) {
+    return (
+      <LoginScreen
+        onRegister={(user) => {
+          toast.success("Registered successfully");
+          registerUser(user.email, user.name);
+        }}
+      />
+    );
+  }
 
   return (
     <Card>

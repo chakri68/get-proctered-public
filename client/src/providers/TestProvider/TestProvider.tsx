@@ -60,6 +60,8 @@ export const TestContext = createContext<{
   warningScreen: boolean;
   continueFromWarning: () => void;
   testEnd: boolean;
+  registered: { email: string; name: string } | null;
+  registerUser: (email: string, name: string) => void;
 }>({
   answerState: [],
   saveResponse: () => new Promise(() => {}),
@@ -83,6 +85,8 @@ export const TestContext = createContext<{
   warningScreen: false,
   continueFromWarning: () => {},
   testEnd: false,
+  registered: null,
+  registerUser: () => {},
 });
 
 export default function TestProvider({
@@ -105,6 +109,10 @@ export default function TestProvider({
   const [testEnd, setTestEnd] = useState<boolean>(false);
   const [bannedFromTest, setBannedFromTest] = useState<boolean>(false);
   const [warningScreen, setWarningScreen] = useState<boolean>(false);
+  const [registered, setRegistered] = useState<{
+    email: string;
+    name: string;
+  } | null>(null);
 
   const { addNotif } = useContext(NotifContext);
 
@@ -112,16 +120,20 @@ export default function TestProvider({
 
   const showViolationScreen = () => {
     setBannedFromTest(true);
-    instance.get(`/test/${testId}/end-test`).then((res) => {
-      console.log(res);
-      addNotif({
-        type: NotifType.ERROR,
-        title: "Test Ended",
-        body: "You have been banned from the test.",
+    instance
+      .post(`/test/${testId}/end-test`, {
+        reason: "SUSPENDED",
+      })
+      .then((res) => {
+        console.log(res);
+        addNotif({
+          type: NotifType.ERROR,
+          title: "Test Ended",
+          body: "You have been banned from the test.",
+        });
+        setTestEnd(true);
+        exitFullscreen();
       });
-      setTestEnd(true);
-      exitFullscreen();
-    });
   };
 
   const showWarningScreen = () => {
@@ -244,7 +256,9 @@ export default function TestProvider({
 
   const submitTest = async () => {
     setTestLoading(true);
-    await instance.get(`/test/${testId}/end-test`);
+    await instance.post(`/test/${testId}/end-test`, {
+      reason: "COMPLETED",
+    });
     setTestLoading(false);
     stopService();
     exitFullscreen();
@@ -305,6 +319,10 @@ export default function TestProvider({
         warningScreen,
         continueFromWarning: handleWarningClose,
         testEnd,
+        registered,
+        registerUser: (email: string, name: string) => {
+          setRegistered({ email, name });
+        },
       }}
     >
       <div id="test-screen" ref={testScreenEl}>

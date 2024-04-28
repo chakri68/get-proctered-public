@@ -41,29 +41,64 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import instance from "@/lib/backend-connect";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { timeSpentFrom } from "../lib/date";
+import toast, { Toaster } from "react-hot-toast";
+import { AxiosError } from "axios";
 
 export function TestDashboard() {
+  const analytics = useRef<any>(null);
+
   const [violations, setViolations] = useState<
     {
       test: string;
+      testId: string;
       student: string;
+      studentId: string;
       violation: string;
       severity: string;
       timestamp: string;
     }[]
   >([]);
 
+  const unBanUser = (testId: string, userId: string) => {
+    console.log({ testId, userId });
+    instance
+      .post(`/test/admin/unban`, {
+        testId,
+        userId,
+      })
+      .then((res) => {
+        toast.success("User unbanned successfully");
+        console.log(res.data);
+        setViolations((v) =>
+          v.filter(
+            (violation) =>
+              violation.studentId !== userId && violation.testId !== testId
+          )
+        );
+      })
+      .catch((err) => {
+        if (err instanceof AxiosError) {
+          toast.error(`Failed to unban user - ${err.response?.data.message}`);
+        } else {
+          toast.error("Failed to unban user");
+        }
+      });
+  };
+
   const fetchData = async () => {
     const res = await instance.get("/analytics");
     console.log(res.data);
+    analytics.current = res.data;
     setViolations(
       res.data.testSessions
         .map((t: any) =>
           t.events.map((e: any) => ({
             ...e,
+            testId: t.test.id,
             test: t.test.name,
+            studentId: t.user.id,
             student: t.user.name,
             violation: e.code,
             severity: e.severity,
@@ -84,271 +119,287 @@ export function TestDashboard() {
   }, []);
 
   return (
-    <div className="grid min-h-screen w-full grid-cols-[280px_1fr] bg-gray-100 dark:bg-gray-950">
-      <div className="flex h-full max-h-screen flex-col gap-2 border-r bg-gray-100/40 dark:bg-gray-800/40">
-        <div className="flex h-[60px] items-center border-b px-6 mt-8">
-          <Link className="flex items-center gap-2 font-semibold" href="#">
-            <Package2Icon className="h-6 w-6" />
-            <span className="">Proctoring Dashboard</span>
-          </Link>
-          <Button className="ml-auto h-8 w-8" size="icon" variant="outline">
-            <BellIcon className="h-4 w-4" />
-            <span className="sr-only">Toggle notifications</span>
-          </Button>
-        </div>
-        <div className="flex-1 overflow-auto py-2">
-          <nav className="grid items-start px-4 text-sm font-medium">
-            <Link
-              className="flex items-center gap-3 rounded-lg bg-gray-100 px-3 py-2 text-gray-900 transition-all hover:text-gray-900 dark:bg-gray-800 dark:text-gray-50 dark:hover:text-gray-50"
-              href="#"
-            >
-              <BookIcon className="h-4 w-4" />
-              Test Management
+    <>
+      <Toaster />
+      <div className="grid min-h-screen w-full grid-cols-[280px_1fr] bg-gray-100 dark:bg-gray-950">
+        <div className="flex h-full max-h-screen flex-col gap-2 border-r bg-gray-100/40 dark:bg-gray-800/40">
+          <div className="flex h-[60px] items-center border-b px-6 mt-8">
+            <Link className="flex items-center gap-2 font-semibold" href="#">
+              <Package2Icon className="h-6 w-6" />
+              <span className="">Proctoring Dashboard</span>
             </Link>
-            <Link
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50"
-              href="#"
-            >
-              <ShieldCheckIcon className="h-4 w-4" />
-              Violation Management
-            </Link>
-          </nav>
+            <Button className="ml-auto h-8 w-8" size="icon" variant="outline">
+              <BellIcon className="h-4 w-4" />
+              <span className="sr-only">Toggle notifications</span>
+            </Button>
+          </div>
+          <div className="flex-1 overflow-auto py-2">
+            <nav className="grid items-start px-4 text-sm font-medium">
+              <Link
+                className="flex items-center gap-3 rounded-lg bg-gray-100 px-3 py-2 text-gray-900 transition-all hover:text-gray-900 dark:bg-gray-800 dark:text-gray-50 dark:hover:text-gray-50"
+                href="#"
+              >
+                <BookIcon className="h-4 w-4" />
+                Test Management
+              </Link>
+              <Link
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50"
+                href="#"
+              >
+                <ShieldCheckIcon className="h-4 w-4" />
+                Violation Management
+              </Link>
+            </nav>
+          </div>
         </div>
-      </div>
-      <main className="flex flex-col gap-4 p-4 md:gap-8 md:p-10">
-        <section>
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold">Test Management</h1>
-            <Button size="sm">Create New Test</Button>
-          </div>
-          <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                <CardTitle className="text-sm font-medium">
-                  Midterm Exam
-                </CardTitle>
-                <div className="flex items-center gap-2">
-                  <Button size="icon" variant="outline">
-                    <FileEditIcon className="h-4 w-4" />
-                    <span className="sr-only">Edit</span>
-                  </Button>
-                  <Button size="icon" variant="outline">
-                    <TrashIcon className="h-4 w-4" />
-                    <span className="sr-only">Delete</span>
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">
-                      Average Duration
-                    </span>
-                    <span className="text-sm">45 mins</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Average Score</span>
-                    <span className="text-sm">85%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Violations</span>
-                    <span className="text-sm">12</span>
-                  </div>
-                  <Button className="w-full" size="sm" variant="outline">
-                    View Details
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                <CardTitle className="text-sm font-medium">
-                  Final Exam
-                </CardTitle>
-                <div className="flex items-center gap-2">
-                  <Button size="icon" variant="outline">
-                    <FileEditIcon className="h-4 w-4" />
-                    <span className="sr-only">Edit</span>
-                  </Button>
-                  <Button size="icon" variant="outline">
-                    <TrashIcon className="h-4 w-4" />
-                    <span className="sr-only">Delete</span>
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">
-                      Average Duration
-                    </span>
-                    <span className="text-sm">90 mins</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Average Score</span>
-                    <span className="text-sm">92%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Violations</span>
-                    <span className="text-sm">5</span>
-                  </div>
-                  <Button className="w-full" size="sm" variant="outline">
-                    View Details
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                <CardTitle className="text-sm font-medium">
-                  Homework Assignment
-                </CardTitle>
-                <div className="flex items-center gap-2">
-                  <Button size="icon" variant="outline">
-                    <FileEditIcon className="h-4 w-4" />
-                    <span className="sr-only">Edit</span>
-                  </Button>
-                  <Button size="icon" variant="outline">
-                    <TrashIcon className="h-4 w-4" />
-                    <span className="sr-only">Delete</span>
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">
-                      Average Duration
-                    </span>
-                    <span className="text-sm">30 mins</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Average Score</span>
-                    <span className="text-sm">88%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Violations</span>
-                    <span className="text-sm">3</span>
-                  </div>
-                  <Button className="w-full" size="sm" variant="outline">
-                    View Details
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                <CardTitle className="text-sm font-medium">
-                  Participation Quiz
-                </CardTitle>
-                <div className="flex items-center gap-2">
-                  <Button size="icon" variant="outline">
-                    <FileEditIcon className="h-4 w-4" />
-                    <span className="sr-only">Edit</span>
-                  </Button>
-                  <Button size="icon" variant="outline">
-                    <TrashIcon className="h-4 w-4" />
-                    <span className="sr-only">Delete</span>
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">
-                      Average Duration
-                    </span>
-                    <span className="text-sm">15 mins</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Average Score</span>
-                    <span className="text-sm">92%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Violations</span>
-                    <span className="text-sm">1</span>
-                  </div>
-                  <Button className="w-full" size="sm" variant="outline">
-                    View Details
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
-        <section>
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold">Violation Management</h1>
-            <div className="flex items-center gap-2">
-              <Input
-                className="w-full max-w-[300px]"
-                placeholder="Search violations..."
-                type="search"
-              />
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="icon" variant="outline">
-                    <FilterIcon className="h-4 w-4" />
-                    <span className="sr-only">Filter</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-[200px]">
-                  <DropdownMenuLabel>Filter by:</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuCheckboxItem>Test</DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem>Student</DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem>
-                    Violation Type
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem>Severity</DropdownMenuCheckboxItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+        <main className="flex flex-col gap-4 p-4 md:gap-8 md:p-10">
+          <section>
+            <div className="flex items-center justify-between">
+              <h1 className="text-2xl font-bold">Test Management</h1>
+              <Button size="sm">Create New Test</Button>
             </div>
-          </div>
-          <div className="mt-4 rounded-lg border border-gray-200 shadow-sm dark:border-gray-800">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Timestamp</TableHead>
-                  <TableHead>Test</TableHead>
-                  <TableHead>Student</TableHead>
-                  <TableHead>Violation</TableHead>
-                  <TableHead>Severity</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {violations.map((v, idx) => (
-                  <TableRow key={idx}>
-                    <TableCell>{timeSpentFrom(v.timestamp)}</TableCell>
-                    <TableCell>{v.test}</TableCell>
-                    <TableCell>{v.student}</TableCell>
-                    <TableCell>{v.violation}</TableCell>
-                    <TableCell>
-                      <Badge variant="destructive">{v.severity}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Button size="icon" variant="outline">
-                        <EyeIcon className="h-4 w-4" />
-                        <span className="sr-only">View</span>
-                      </Button>
-                      <Button size="icon" variant="outline">
-                        <CheckIcon className="h-4 w-4" />
-                        <span className="sr-only">Resolve</span>
-                      </Button>
-                      <Button size="icon" variant="outline">
-                        <XIcon className="h-4 w-4" />
-                        <span className="sr-only">Dismiss</span>
-                      </Button>
-                    </TableCell>
+            <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+                  <CardTitle className="text-sm font-medium">
+                    Midterm Exam
+                  </CardTitle>
+                  <div className="flex items-center gap-2">
+                    <Button size="icon" variant="outline">
+                      <FileEditIcon className="h-4 w-4" />
+                      <span className="sr-only">Edit</span>
+                    </Button>
+                    <Button size="icon" variant="outline">
+                      <TrashIcon className="h-4 w-4" />
+                      <span className="sr-only">Delete</span>
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">
+                        Average Duration
+                      </span>
+                      <span className="text-sm">45 mins</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Average Score</span>
+                      <span className="text-sm">85%</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Violations</span>
+                      <span className="text-sm">12</span>
+                    </div>
+                    <Button className="w-full" size="sm" variant="outline">
+                      View Details
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+                  <CardTitle className="text-sm font-medium">
+                    Final Exam
+                  </CardTitle>
+                  <div className="flex items-center gap-2">
+                    <Button size="icon" variant="outline">
+                      <FileEditIcon className="h-4 w-4" />
+                      <span className="sr-only">Edit</span>
+                    </Button>
+                    <Button size="icon" variant="outline">
+                      <TrashIcon className="h-4 w-4" />
+                      <span className="sr-only">Delete</span>
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">
+                        Average Duration
+                      </span>
+                      <span className="text-sm">90 mins</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Average Score</span>
+                      <span className="text-sm">92%</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Violations</span>
+                      <span className="text-sm">5</span>
+                    </div>
+                    <Button className="w-full" size="sm" variant="outline">
+                      View Details
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+                  <CardTitle className="text-sm font-medium">
+                    Homework Assignment
+                  </CardTitle>
+                  <div className="flex items-center gap-2">
+                    <Button size="icon" variant="outline">
+                      <FileEditIcon className="h-4 w-4" />
+                      <span className="sr-only">Edit</span>
+                    </Button>
+                    <Button size="icon" variant="outline">
+                      <TrashIcon className="h-4 w-4" />
+                      <span className="sr-only">Delete</span>
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">
+                        Average Duration
+                      </span>
+                      <span className="text-sm">30 mins</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Average Score</span>
+                      <span className="text-sm">88%</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Violations</span>
+                      <span className="text-sm">3</span>
+                    </div>
+                    <Button className="w-full" size="sm" variant="outline">
+                      View Details
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+                  <CardTitle className="text-sm font-medium">
+                    Participation Quiz
+                  </CardTitle>
+                  <div className="flex items-center gap-2">
+                    <Button size="icon" variant="outline">
+                      <FileEditIcon className="h-4 w-4" />
+                      <span className="sr-only">Edit</span>
+                    </Button>
+                    <Button size="icon" variant="outline">
+                      <TrashIcon className="h-4 w-4" />
+                      <span className="sr-only">Delete</span>
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">
+                        Average Duration
+                      </span>
+                      <span className="text-sm">15 mins</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Average Score</span>
+                      <span className="text-sm">92%</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Violations</span>
+                      <span className="text-sm">1</span>
+                    </div>
+                    <Button className="w-full" size="sm" variant="outline">
+                      View Details
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </section>
+          <section>
+            <div className="flex items-center justify-between">
+              <h1 className="text-2xl font-bold">Violation Management</h1>
+              <div className="flex items-center gap-2">
+                <Input
+                  className="w-full max-w-[300px]"
+                  placeholder="Search violations..."
+                  type="search"
+                />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="icon" variant="outline">
+                      <FilterIcon className="h-4 w-4" />
+                      <span className="sr-only">Filter</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[200px]">
+                    <DropdownMenuLabel>Filter by:</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuCheckboxItem>Test</DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem>Student</DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem>
+                      Violation Type
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem>
+                      Severity
+                    </DropdownMenuCheckboxItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+            <div className="mt-4 rounded-lg border border-gray-200 shadow-sm dark:border-gray-800">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Timestamp</TableHead>
+                    <TableHead>Test</TableHead>
+                    <TableHead>Student</TableHead>
+                    <TableHead>Violation</TableHead>
+                    <TableHead>Severity</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </section>
-      </main>
-    </div>
+                </TableHeader>
+                <TableBody>
+                  {violations.map((v, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell>{timeSpentFrom(v.timestamp)}</TableCell>
+                      <TableCell>{v.test}</TableCell>
+                      <TableCell>{v.student}</TableCell>
+                      <TableCell>{v.violation}</TableCell>
+                      <TableCell>
+                        <Badge variant="destructive">{v.severity}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Button size="icon" variant="outline">
+                          <EyeIcon className="h-4 w-4" />
+                          <span className="sr-only">View</span>
+                        </Button>
+                        {v.severity === "error" && (
+                          <>
+                            {" "}
+                            <Button size="icon" variant="outline">
+                              <CheckIcon className="h-4 w-4" />
+                              <span className="sr-only">Resolve</span>
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="outline"
+                              onClick={() => {
+                                unBanUser(v.testId, v.studentId);
+                              }}
+                            >
+                              <XIcon className="h-4 w-4" />
+                              <span className="sr-only">Dismiss</span>
+                            </Button>
+                          </>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </section>
+        </main>
+      </div>
+    </>
   );
 }
 
