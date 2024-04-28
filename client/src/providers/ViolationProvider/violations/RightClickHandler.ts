@@ -1,10 +1,10 @@
 import GenericViolation from "./GenericViolation";
 
 export default class RightClickHandler extends GenericViolation<"DONT_CLICK"> {
- 
-
+  handleRightClick: (e: MouseEvent) => void;
   constructor() {
     super("DONT_CLICK");
+    this.handleRightClick = this._handleRightClick.bind(this);
   }
 
   setup() {
@@ -18,7 +18,7 @@ export default class RightClickHandler extends GenericViolation<"DONT_CLICK"> {
     );
   }
 
-  handleRightClick = (e: MouseEvent) => {
+  _handleRightClick = (e: MouseEvent) => {
     e.preventDefault();
   };
 }

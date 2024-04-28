@@ -1,10 +1,12 @@
 import GenericViolation from "./GenericViolation";
 
 export default class FullScreenCloseViolation extends GenericViolation<"FULLSCREEN_CLOSE"> {
+  handleFullScreenChange: () => void;
   count: number = 0;
 
   constructor() {
     super("FULLSCREEN_CLOSE");
+    this.handleFullScreenChange = this._handleFullScreenChange.bind(this);
   }
 
   setup() {
@@ -14,11 +16,11 @@ export default class FullScreenCloseViolation extends GenericViolation<"FULLSCRE
   teardown() {
     document.removeEventListener(
       "fullscreenchange",
-      this.handleFullScreenChange.bind(this)
+      this.handleFullScreenChange
     );
   }
 
-  handleFullScreenChange = () => {
+  _handleFullScreenChange = () => {
     if (
       !document.fullscreenElement &&
       // @ts-ignore

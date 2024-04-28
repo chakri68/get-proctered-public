@@ -250,7 +250,7 @@ function QuestionCard() {
               setSelectedOption(opt.id);
             }}
           >
-            {opt.text}
+            {opt.option}
           </Button>
         ))}
       </div>

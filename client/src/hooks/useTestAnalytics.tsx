@@ -16,7 +16,12 @@ export default function useTestAnalytics({
 }) {
   const { testId } = useParams();
 
-  const { violations } = useContext(ViolationContext);
+  const {
+    violations,
+    serviceStarted: violationServiceStarted,
+    startService: startViolationListeners,
+    stopService: stopViolationListeners,
+  } = useContext(ViolationContext);
 
   const { makeFullscreen } = useContext(ScreenContext);
   const { addNotif, notifs, removeNotif } = useContext(NotifContext);
@@ -84,6 +89,7 @@ export default function useTestAnalytics({
       }
       return;
     }
+    startViolationListeners();
     setServiceStarted(true);
     makeFullscreen(el);
   };
@@ -91,6 +97,7 @@ export default function useTestAnalytics({
   const stopService = () => {
     // Clear all notifications
     notifRefs.current.forEach((ref) => removeNotif(ref));
+    stopViolationListeners();
     setServiceStarted(false);
   };
 

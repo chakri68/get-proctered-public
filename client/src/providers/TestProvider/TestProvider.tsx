@@ -16,144 +16,6 @@ import instance from "@/lib/backend-connect";
 import { useParams } from "next/navigation";
 import { AxiosError } from "axios";
 
-const MOCK_QUESTIONS = [
-  {
-    index: 1,
-    question: "What is the capital of France?",
-    options: ["London", "Paris", "Berlin", "Rome"],
-  },
-  {
-    index: 2,
-    question: "Who wrote 'Hamlet'?",
-    options: [
-      "William Shakespeare",
-      "Charles Dickens",
-      "Jane Austen",
-      "Leo Tolstoy",
-    ],
-  },
-  {
-    index: 3,
-    question: "Which planet is known as the Red Planet?",
-    options: ["Venus", "Mars", "Jupiter", "Saturn"],
-  },
-  {
-    index: 4,
-    question: "What is the chemical symbol for water?",
-    options: ["H2O", "CO2", "NaCl", "O2"],
-  },
-  {
-    index: 5,
-    question: "Who painted the Mona Lisa?",
-    options: [
-      "Leonardo da Vinci",
-      "Vincent van Gogh",
-      "Pablo Picasso",
-      "Michelangelo",
-    ],
-  },
-  {
-    index: 6,
-    question: "Which continent is the largest by land area?",
-    options: ["Asia", "Africa", "North America", "Europe"],
-  },
-  {
-    index: 7,
-    question: "What is the tallest mammal?",
-    options: ["Elephant", "Giraffe", "Horse", "Rhino"],
-  },
-  {
-    index: 8,
-    question: "What is the primary ingredient in guacamole?",
-    options: ["Tomato", "Avocado", "Onion", "Lemon"],
-  },
-  {
-    index: 9,
-    question: "Which element has the chemical symbol 'Fe'?",
-    options: ["Iron", "Gold", "Silver", "Copper"],
-  },
-  {
-    index: 10,
-    question: "Who is the author of 'The Great Gatsby'?",
-    options: [
-      "F. Scott Fitzgerald",
-      "Ernest Hemingway",
-      "Mark Twain",
-      "Jane Austen",
-    ],
-  },
-  {
-    index: 11,
-    question: "What is the largest ocean on Earth?",
-    options: [
-      "Atlantic Ocean",
-      "Indian Ocean",
-      "Pacific Ocean",
-      "Arctic Ocean",
-    ],
-  },
-  {
-    index: 12,
-    question: "Who discovered penicillin?",
-    options: [
-      "Alexander Fleming",
-      "Louis Pasteur",
-      "Marie Curie",
-      "Gregor Mendel",
-    ],
-  },
-  {
-    index: 13,
-    question: "Which gas do plants absorb for photosynthesis?",
-    options: ["Oxygen", "Carbon Dioxide", "Nitrogen", "Hydrogen"],
-  },
-  {
-    index: 14,
-    question: "What is the chemical symbol for gold?",
-    options: ["Ag", "Au", "Fe", "Hg"],
-  },
-  {
-    index: 15,
-    question: "Who wrote 'To Kill a Mockingbird'?",
-    options: ["Harper Lee", "J.K. Rowling", "Stephen King", "George Orwell"],
-  },
-  {
-    index: 16,
-    question: "What is the largest organ in the human body?",
-    options: ["Brain", "Heart", "Liver", "Skin"],
-  },
-  {
-    index: 17,
-    question: "Who invented the telephone?",
-    options: [
-      "Alexander Graham Bell",
-      "Thomas Edison",
-      "Nikola Tesla",
-      "Guglielmo Marconi",
-    ],
-  },
-  {
-    index: 18,
-    question: "What is the chemical symbol for silver?",
-    options: ["Si", "S", "Ag", "Sr"],
-  },
-  {
-    index: 19,
-    question: "Who painted 'The Starry Night'?",
-    options: [
-      "Vincent van Gogh",
-      "Leonardo da Vinci",
-      "Pablo Picasso",
-      "Claude Monet",
-    ],
-  },
-  {
-    index: 20,
-    question: "What is the currency of Japan?",
-    options: ["Yen", "Dollar", "Euro", "Pound"],
-  },
-];
-
 export enum QuestionStatus {
   SAVED,
   NOT_VISITED,
@@ -175,7 +37,8 @@ export type Question = {
 
 export type Option = {
   id: string;
-  text: string;
+  option: string;
+  isCorrect: boolean;
 };
 
 export const TestContext = createContext<{
@@ -399,7 +262,8 @@ export default function TestProvider({
       question: question.question,
       options: question.options.map((option, index) => ({
         id: index.toString(),
-        text: option.text,
+        option: option.option,
+        isCorrect: option.isCorrect,
       })),
     });
   };

@@ -1,12 +1,14 @@
 import GenericViolation from "./GenericViolation";
 
-export default class KeyboardDisabler extends GenericViolation<"DONT_TYPE">{
+export default class KeyboardDisabler extends GenericViolation<"DONT_TYPE"> {
+  handleKeyDown: (event: Event) => void;
   constructor() {
-    super("DONT_TYPE")
-    this.handleKeyDown = this.handleKeyDown.bind(this);
+    super("DONT_TYPE");
+    this.handleKeyDown = this._handleKeyDown.bind(this);
   }
 
   setup() {
+    console.log("KeyboardDisabler setup");
     document.addEventListener("keydown", this.handleKeyDown);
   }
 
@@ -14,10 +16,8 @@ export default class KeyboardDisabler extends GenericViolation<"DONT_TYPE">{
     document.removeEventListener("keydown", this.handleKeyDown);
   }
 
-  handleKeyDown(event: Event) {
+  _handleKeyDown(event: Event) {
     event.preventDefault(); // Prevents the default behavior of keydown event
     event.stopPropagation(); // Stops the event from propagating further
   }
 }
-
-
