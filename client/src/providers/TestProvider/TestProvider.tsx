@@ -262,8 +262,8 @@ export default function TestProvider({
     setCurrentQuestion({
       id: questionId,
       question: question.question,
-      options: question.options.map((option, index) => ({
-        id: index.toString(),
+      options: question.options.map((option) => ({
+        id: option.id,
         option: option.option,
         isCorrect: option.isCorrect,
       })),
