@@ -13,7 +13,7 @@ export async function checkUserTest(testId, userId) {
 
   if (!test) {
     return {
-      error: "Test not found",
+      message: "Test not found",
       data: null,
     };
   }
@@ -27,10 +27,10 @@ export async function checkUserTest(testId, userId) {
 
   if (!userTest) {
     return {
-      error: "User cannot take test",
+      message: "User cannot take test",
       data: null,
     };
   }
 
-  return { data: userTest, error: null };
+  return { data: userTest, message: null };
 }

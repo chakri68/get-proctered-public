@@ -8,6 +8,7 @@ import { useParams } from "next/navigation";
 import instance from "../lib/backend-connect";
 import { WebCamContext } from "@/providers/WebCamProvider/WebCamProvider";
 import useWebCam from "./useWebCam";
+import toast from "react-hot-toast";
 
 export default function useTestAnalytics({
   showViolationScreen,
@@ -29,10 +30,7 @@ export default function useTestAnalytics({
   const { addNotif, notifs, removeNotif } = useContext(NotifContext);
   const { getSnapshot } = useContext(WebCamContext);
 
-  const { startWebCamService, stopWebCamService } = useWebCam({
-    showViolationScreen,
-    showWarningScreen,
-  });
+  const { startWebCamService, stopWebCamService } = useWebCam();
 
   const [serviceStarted, setServiceStarted] = useState<boolean>(false);
 
@@ -40,13 +38,7 @@ export default function useTestAnalytics({
 
   useEffect(() => {
     if (serviceStarted) {
-      addNotif({
-        body: "Service started",
-        title: "Test Analytics",
-        type: NotifType.INFO,
-        closeable: true,
-        timeout: 5000,
-      });
+      toast.success("Service started");
     }
   }, [serviceStarted]);
 
@@ -66,21 +58,13 @@ export default function useTestAnalytics({
         .then((res) => {
           console.log(res.data);
         });
-      notifRefs.current.push(
-        addNotif({
-          body: "You have violated the test rules",
-          title: `Violation ${newViolation.code}`,
-          type:
-            newViolation.severity === "error"
-              ? NotifType.ERROR
-              : NotifType.WARNING,
-          closeable: true,
-        })
-      );
       if (newViolation.severity === "error") {
-        console.log({ newViolation });
+        toast.error(`Violation: ${newViolation.code}`);
         showViolationScreen();
       } else {
+        toast(
+          `Warning: You have violated the test rules - ${newViolation.code}`
+        );
         showWarningScreen();
       }
     }
