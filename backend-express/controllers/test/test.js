@@ -84,6 +84,13 @@ router.post("/:id/start-test", upload.single("face"), async (req, res) => {
       });
     }
 
+    if (testSession && testSession.status === "IN_PROGRESS") {
+      return res.status(200).json({
+        message: "Test session already in progress",
+        data: testSession,
+      });
+    }
+
     const session = await prisma.testSession.create({
       data: {
         testId: id,
@@ -92,8 +99,9 @@ router.post("/:id/start-test", upload.single("face"), async (req, res) => {
           {
             code: "SESSION_START",
             message: "Session started",
-            severity: "INFO",
+            severity: "info",
             timestamp: new Date(),
+            resolved: false,
           },
         ],
         answers: [],
@@ -311,8 +319,9 @@ router.post("/:id/end-test", async (req, res) => {
           {
             code: "SESSION_END",
             message: "Session ended",
-            severity: "INFO",
+            severity: "info",
             timestamp: new Date(),
+            resolved: false,
           },
         ],
       },
@@ -390,8 +399,9 @@ router.post("/:id/ping", upload.single("face"), async (req, res) => {
             {
               code: "FACE_MISMATCH",
               message: "Face mismatch",
-              severity: "ERROR",
+              severity: "error",
               timestamp: new Date(),
+              resolved: false,
             },
           ],
         },
@@ -461,6 +471,7 @@ router.post("/:id/analytics", async (req, res) => {
             timestamp,
             severity,
             message,
+            resolved: false,
           },
         ],
       },
