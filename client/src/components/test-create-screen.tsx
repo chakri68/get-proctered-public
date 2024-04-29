@@ -149,7 +149,7 @@ export function TestCreateScreen() {
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto  space-y-6 border rounded-lg shadow-md absolute top-[50%] left-[50%] -translate-x-[50%] -translate-y-[50%] p-16">
+    <div className="w-full max-w-2xl mx-auto space-y-6 border rounded-lg shadow-md absolute top-[50%] left-[50%] -translate-x-[50%] -translate-y-[50%] p-16 overflow-y-auto max-h-[calc(100vh-64px)]">
       <h1 className="text-2xl font-semibold text-center">Create Test</h1>
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
