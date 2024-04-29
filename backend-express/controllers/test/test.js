@@ -56,13 +56,13 @@ router.post("/:id/start-test", upload.single("face"), async (req, res) => {
     }
 
     // Check if the user is allowed to take the test
-    const { data, error } = await checkUserTest(id, userId);
+    // const { data, error } = await checkUserTest(id, userId);
 
-    if (error) {
-      return res.status(400).json({
-        message: error,
-      });
-    }
+    // if (error) {
+    //   return res.status(400).json({
+    //     message: error,
+    //   });
+    // }
 
     // Check if a test session already exists
     const testSession = await prisma.testSession.findFirst({
@@ -123,13 +123,13 @@ router.post("/:id/submit-answer", async (req, res) => {
     if (!user) throw new Error("Not Authorized");
 
     // Check if the user is allowed to take the test
-    const { data, error } = await checkUserTest(id, user.id);
+    // const { data, error } = await checkUserTest(id, user.id);
 
-    if (error) {
-      return res.status(400).json({
-        message: error,
-      });
-    }
+    // if (error) {
+    //   return res.status(400).json({
+    //     message: error,
+    //   });
+    // }
 
     const testSession = await prisma.testSession.findFirst({
       where: {
@@ -190,13 +190,13 @@ router.get("/:id", async (req, res) => {
     if (!user) throw new Error("Not Authorized");
 
     // Check if the user is allowed to take the test
-    const { data, error } = await checkUserTest(id, user.id);
+    // const { data, error } = await checkUserTest(id, user.id);
 
-    if (error) {
-      return res.status(400).json({
-        message: error,
-      });
-    }
+    // if (error) {
+    //   return res.status(400).json({
+    //     message: error,
+    //   });
+    // }
 
     const test = await prisma.test.findUnique({
       where: {
@@ -257,13 +257,13 @@ router.post("/:id/end-test", async (req, res) => {
     if (!user) throw new Error("Not Authorized");
 
     // Check if the user is allowed to take the test
-    const { data, error } = await checkUserTest(id, user.id);
+    // const { data, error } = await checkUserTest(id, user.id);
 
-    if (error) {
-      return res.status(400).json({
-        message: error,
-      });
-    }
+    // if (error) {
+    //   return res.status(400).json({
+    //     message: error,
+    //   });
+    // }
 
     const testSession = await prisma.testSession.findFirst({
       where: {
