@@ -52,7 +52,15 @@ export default function useWebCam() {
     PHONE_DETECTED: 0,
   });
 
-  const violationCount = React.useRef<number>(0);
+  const violationCount = React.useRef<{
+    TOO_MANY_FACES: number;
+    FACE_NOT_FOUND: number;
+    PHONE_DETECTED: number;
+  }>({
+    TOO_MANY_FACES: 0,
+    FACE_NOT_FOUND: 0,
+    PHONE_DETECTED: 0,
+  });
 
   const startService = async () => {
     console.log("Starting service");
@@ -98,14 +106,16 @@ export default function useWebCam() {
   };
 
   const checkPredictions = (predictions: Detection[]) => {
+    console.log({ predictions });
     predictions.forEach((prediction) => {
       if (
         prediction.categories.some((category) =>
           BANNED_CATEGORIES.includes(category.categoryName)
         )
       ) {
-        violationCount.current += 1;
-        if (violationCount.current > 100) {
+        console.log("Phone detected", violationCount.current);
+        violationCount.current.PHONE_DETECTED += 1;
+        if (violationCount.current.PHONE_DETECTED > 100) {
           if (warningsRef.current.PHONE_DETECTED > 2) {
             addViolation({
               code: "PHONE_DETECTED",
@@ -128,25 +138,27 @@ export default function useWebCam() {
 
   const checkFaceDetections = (predictions: Detection[]) => {
     if (predictions.length === 0) {
-      violationCount.current += 1;
-      if (violationCount.current > 100) {
+      console.log("Face not found", violationCount.current);
+      violationCount.current.FACE_NOT_FOUND += 1;
+      if (violationCount.current.FACE_NOT_FOUND > 100) {
         addViolation({
           code: "FACE_NOT_FOUND",
           severity: "error",
           timestamp: new Date(),
         });
-        violationCount.current = 0;
+        violationCount.current.FACE_NOT_FOUND = 0;
       }
     }
     if (predictions.length > 1) {
-      violationCount.current += 1;
-      if (violationCount.current > 100) {
+      console.log("Too many faces", violationCount.current);
+      violationCount.current.TOO_MANY_FACES += 1;
+      if (violationCount.current.TOO_MANY_FACES > 100) {
         addViolation({
           code: "TOO_MANY_FACES",
           severity: "error",
           timestamp: new Date(),
         });
-        violationCount.current = 0;
+        violationCount.current.TOO_MANY_FACES = 0;
       }
     }
   };
@@ -181,7 +193,6 @@ export default function useWebCam() {
   };
 
   const predictionJob = () => {
-    console.log("Running prediction job");
     const startTime = performance.now();
     const video = videoElRef.current;
     if (video) {
@@ -195,21 +206,18 @@ export default function useWebCam() {
         if (fd) {
           checkFaceDetections(fd.detections);
         }
-        if (!predictions) {
-          violationCount.current += 1;
-        }
         if (predictions) {
           checkPredictions(predictions.detections);
         }
       }
     }
 
-    if (serviceStarted)
-      animationRef.current = window.requestAnimationFrame(predictionJob);
+    animationRef.current = window.requestAnimationFrame(predictionJob);
   };
 
   const stopService = () => {
     console.log("STOPPING SERVICE");
+    window.cancelAnimationFrame(animationRef.current!);
     setServiceStarted(false);
   };
 
