@@ -57,26 +57,33 @@ export function getQuestions(questionBank, totalMarks) {
 }
 
 export function getRandomCombination(questionBank, totalMarks) {
-  // Initialize an array to store all possible combinations for each total mark
-  let combinations = new Array(totalMarks + 1).fill(null).map(() => []);
+  const questions = questionBank.toSorted((a, b) => a.marks - b.marks);
+  const result = [];
 
-  // There is 1 possible combination to get 0 total marks (no questions selected)
-  combinations[0].push([]);
-
-  // Iterate through each question in the question bank
-  for (let question of questionBank) {
-    // Iterate through each mark from totalMarks down to question's marks
-    for (let i = totalMarks; i >= question.marks; i--) {
-      // Add the combinations for the current mark by adding the combinations for (current mark - question's marks)
-      for (let prevCombination of combinations[i - question.marks]) {
-        combinations[i].push([...prevCombination, question]);
-      }
+  function dfs(cur, idx, sum) {
+    if (sum === totalMarks) {
+      result.push([...cur]);
+      return;
     }
+
+    if (idx >= questions.length || sum > totalMarks) {
+      return;
+    }
+
+    cur.push(questions[idx]);
+    dfs(cur, idx + 1, sum + questions[idx].marks);
+    cur.pop();
+
+    while (
+      idx + 1 < questions.length &&
+      questions[idx] === questions[idx + 1]
+    ) {
+      idx++;
+    }
+    dfs(cur, idx + 1, sum);
   }
 
-  console.log({ combinations });
+  dfs([], 0, 0);
 
-  // Select a random combination from all possible combinations for the given total marks
-  let randomIndex = Math.floor(Math.random() * combinations[totalMarks].length);
-  return combinations[totalMarks][randomIndex];
+  return result[Math.floor(Math.random() * result.length)];
 }
