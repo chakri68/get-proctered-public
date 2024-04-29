@@ -48,16 +48,17 @@ export default function useTestAnalytics({
     }
     const newViolation = violations[violations.length - 1];
     if (newViolation) {
-      instance
-        .post(`/test/${testId}/analytics`, {
-          code: newViolation.code,
-          severity: newViolation.severity,
-          timestamp: newViolation.timestamp,
-          message: "You have violated the test rules",
-        })
-        .then((res) => {
-          console.log(res.data);
-        });
+      const fd = new FormData();
+      fd.append("code", newViolation.code);
+      fd.append("severity", newViolation.severity);
+      fd.append("timestamp", newViolation.timestamp.toISOString());
+      fd.append("message", "You have violated the test rules");
+      console.log;
+      if (newViolation.snapshot) fd.append("snap", newViolation.snapshot);
+
+      instance.post(`/test/${testId}/analytics`, fd).then((res) => {
+        console.log(res.data);
+      });
       if (newViolation.severity === "error") {
         toast.error(`Violation: ${newViolation.code}`);
         showViolationScreen();

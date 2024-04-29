@@ -19,16 +19,28 @@ import {
   Table,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import instance from "@/lib/backend-connect";
+import instance, { BACKEND_URL } from "@/lib/backend-connect";
 import { useEffect, useRef, useState } from "react";
 import { timeSpentFrom } from "../lib/date";
 import toast, { Toaster } from "react-hot-toast";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
+import {
+  DialogTrigger,
+  DialogTitle,
+  DialogDescription,
+  DialogHeader,
+  DialogFooter,
+  DialogContent,
+  Dialog,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 export function TestDashboard() {
   const router = useRouter();
   const analytics = useRef<any>(null);
+
+  const [modalImage, setModalImage] = useState<string | null>(null);
 
   const [violations, setViolations] = useState<
     {
@@ -41,6 +53,7 @@ export function TestDashboard() {
       timestamp: string;
       resolved: boolean;
       idx: number;
+      snapshot?: string;
     }[]
   >([]);
 
@@ -132,6 +145,26 @@ export function TestDashboard() {
 
   return (
     <main className="flex flex-col gap-4 p-4 md:gap-8 md:p-10">
+      <Dialog
+        open={modalImage !== null}
+        onOpenChange={(open) => {
+          if (!open) setModalImage(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Image</DialogTitle>
+            <DialogDescription>Snapshot of the violation</DialogDescription>
+          </DialogHeader>
+          {modalImage && (
+            <img
+              src={modalImage}
+              alt="Violation"
+              className="w-full h-full object-contain"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
       <Toaster />
       <section>
         <div className="flex items-center justify-between">
@@ -250,10 +283,18 @@ export function TestDashboard() {
                     <Badge variant="destructive">{v.severity}</Badge>
                   </TableCell>
                   <TableCell>
-                    <Button size="icon" variant="outline">
-                      <EyeIcon className="h-4 w-4" />
-                      <span className="sr-only">View</span>
-                    </Button>
+                    {v.snapshot && (
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        onClick={() => {
+                          setModalImage(`${BACKEND_URL}/images/${v.snapshot}`);
+                        }}
+                      >
+                        <EyeIcon className="h-4 w-4" />
+                        <span className="sr-only">View</span>
+                      </Button>
+                    )}
                     {v.severity === "error" && (
                       <>
                         {" "}

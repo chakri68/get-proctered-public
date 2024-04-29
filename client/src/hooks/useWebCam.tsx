@@ -32,7 +32,7 @@ export interface BoundingBox {
 const BANNED_CATEGORIES = ["cell phone"];
 
 export default function useWebCam() {
-  const { videoElRef } = useContext(WebCamContext);
+  const { videoElRef, stream } = useContext(WebCamContext);
   const { addViolation } = useContext(ViolationContext);
 
   const [serviceStarted, setServiceStarted] = useState<boolean>(false);
@@ -118,20 +118,34 @@ export default function useWebCam() {
         violationCount.current.PHONE_DETECTED += 1;
         if (violationCount.current.PHONE_DETECTED > 20) {
           if (warningsRef.current.PHONE_DETECTED > 2) {
-            addViolation({
-              code: "PHONE_DETECTED",
-              severity: "error",
-              timestamp: new Date(),
-            });
+            // @ts-ignore
+            new ImageCapture(stream.getVideoTracks()[0])
+              .takePhoto()
+              .then((blob: Blob) => {
+                addViolation({
+                  code: "PHONE_DETECTED",
+                  severity: "error",
+                  timestamp: new Date(),
+                  snapshot: blob,
+                });
+              });
             warningsRef.current.PHONE_DETECTED = 0;
           } else {
             warningsRef.current.PHONE_DETECTED += 1;
-            addViolation({
-              code: "PHONE_DETECTED",
-              severity: "warning",
-              timestamp: new Date(),
-            });
+            // @ts-ignore
+            new ImageCapture(stream.getVideoTracks()[0])
+              .takePhoto()
+              .then((blob: Blob) => {
+                addViolation({
+                  code: "PHONE_DETECTED",
+                  severity: "warning",
+                  timestamp: new Date(),
+                  // @ts-ignore
+                  snapshot: blob,
+                });
+              });
           }
+          violationCount.current.PHONE_DETECTED = 0;
         }
       }
     });
@@ -142,11 +156,34 @@ export default function useWebCam() {
       console.log("Face not found", violationCount.current);
       violationCount.current.FACE_NOT_FOUND += 1;
       if (violationCount.current.FACE_NOT_FOUND > 10) {
-        addViolation({
-          code: "FACE_NOT_FOUND",
-          severity: "error",
-          timestamp: new Date(),
-        });
+        if (warningsRef.current.FACE_NOT_FOUND > 2) {
+          // @ts-ignore
+          new ImageCapture(stream.getVideoTracks()[0])
+            .takePhoto()
+            .then((blob: Blob) => {
+              addViolation({
+                code: "FACE_NOT_FOUND",
+                severity: "error",
+                timestamp: new Date(),
+                snapshot: blob,
+              });
+            });
+          warningsRef.current.FACE_NOT_FOUND = 0;
+        } else {
+          warningsRef.current.FACE_NOT_FOUND += 1;
+          // @ts-ignore
+          new ImageCapture(stream.getVideoTracks()[0])
+            .takePhoto()
+            .then((blob: Blob) => {
+              addViolation({
+                code: "FACE_NOT_FOUND",
+                severity: "warning",
+                timestamp: new Date(),
+                // @ts-ignore
+                snapshot: blob,
+              });
+            });
+        }
         violationCount.current.FACE_NOT_FOUND = 0;
       }
     }
@@ -154,11 +191,33 @@ export default function useWebCam() {
       console.log("Too many faces", violationCount.current);
       violationCount.current.TOO_MANY_FACES += 1;
       if (violationCount.current.TOO_MANY_FACES > 20) {
-        addViolation({
-          code: "TOO_MANY_FACES",
-          severity: "error",
-          timestamp: new Date(),
-        });
+        if (warningsRef.current.TOO_MANY_FACES > 2) {
+          // @ts-ignore
+          new ImageCapture(stream.getVideoTracks()[0])
+            .takePhoto()
+            .then((blob: Blob) => {
+              addViolation({
+                code: "TOO_MANY_FACES",
+                severity: "error",
+                timestamp: new Date(),
+                snapshot: blob,
+              });
+            });
+          warningsRef.current.TOO_MANY_FACES = 0;
+        } else {
+          warningsRef.current.TOO_MANY_FACES += 1;
+          // @ts-ignore
+          new ImageCapture(stream.getVideoTracks()[0])
+            .takePhoto()
+            .then((blob: Blob) => {
+              addViolation({
+                code: "TOO_MANY_FACES",
+                severity: "warning",
+                timestamp: new Date(),
+                snapshot: blob,
+              });
+            });
+        }
         violationCount.current.TOO_MANY_FACES = 0;
       }
     }

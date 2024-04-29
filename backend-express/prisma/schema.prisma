@@ -36,7 +36,7 @@ model TestSession {
   startTime DateTime
   endTime   DateTime?
   answers   Json
-  events    Json // { code: string, message: string, severity: string, timestamp: string, resolved: boolean }[]
+  events    Json // { code: string, message: string, severity: string, timestamp: string, resolved: boolean, snapshot: string | null (path to the file) }[]
 }
 
 model TestTaker {

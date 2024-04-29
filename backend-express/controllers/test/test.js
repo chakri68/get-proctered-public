@@ -4,6 +4,7 @@ import checkAuth from "../../middleware/auth.js";
 import multer from "multer";
 import { compareFaceToDescriptor } from "../../services/check-face.js";
 import { checkUserTest } from "../../services/test.js";
+import { uploadFile } from "../../services/upload.js";
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
@@ -417,10 +418,11 @@ router.post("/:id/ping", upload.single("face"), async (req, res) => {
   }
 });
 
-router.post("/:id/analytics", async (req, res) => {
+router.post("/:id/analytics", upload.single("snap"), async (req, res) => {
   try {
     const { id } = req.params;
     const { code, timestamp, severity, message } = req.body;
+    const file = req.file;
 
     const user = req.user;
     if (!user) throw new Error("Not Authorized");
@@ -458,22 +460,29 @@ router.post("/:id/analytics", async (req, res) => {
       });
     }
 
+    const newEvent = {
+      code,
+      timestamp,
+      severity,
+      message,
+      resolved: false,
+    };
+
+    if (file) {
+      const genName = `${new Date().getTime()}.png`;
+      // Save the image to the disk
+      await uploadFile(genName, file.buffer);
+      // Add the image path to the event
+      newEvent["snapshot"] = genName;
+    }
+
     // Update the events with the new event
     const newTestSession = await prisma.testSession.update({
       where: {
         id: testSession.id,
       },
       data: {
-        events: [
-          ...prevEvents,
-          {
-            code,
-            timestamp,
-            severity,
-            message,
-            resolved: false,
-          },
-        ],
+        events: [...prevEvents, newEvent],
       },
     });
 
