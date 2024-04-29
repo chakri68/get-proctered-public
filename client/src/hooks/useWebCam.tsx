@@ -4,8 +4,9 @@ import {
   FilesetResolver,
   ObjectDetector,
   FaceLandmarker,
+  FaceDetector,
 } from "@mediapipe/tasks-vision";
-import { TestContext } from "@/providers/TestProvider/TestProvider";
+import { ViolationContext } from "@/providers/ViolationProvider/ViolationProvider";
 
 export interface Detection {
   categories: Category[];
@@ -30,24 +31,35 @@ export interface BoundingBox {
 
 const BANNED_CATEGORIES = ["cell phone"];
 
-export default function useWebCam({
-  showWarningScreen,
-  showViolationScreen,
-}: {
-  showWarningScreen: () => void;
-  showViolationScreen: () => void;
-}) {
+export default function useWebCam() {
   const { videoElRef } = useContext(WebCamContext);
+  const { addViolation } = useContext(ViolationContext);
 
   const [serviceStarted, setServiceStarted] = useState<boolean>(false);
   const objectDetector = React.useRef<ObjectDetector | null>(null);
   const faceLandmarker = React.useRef<FaceLandmarker | null>(null);
+  const faceDetector = React.useRef<FaceDetector | null>(null);
   const previousTime = React.useRef<number>(-1);
   const animationRef = React.useRef<number>();
+
+  const warningsRef = React.useRef<{
+    TOO_MANY_FACES: number;
+    FACE_NOT_FOUND: number;
+    PHONE_DETECTED: number;
+  }>({
+    TOO_MANY_FACES: 0,
+    FACE_NOT_FOUND: 0,
+    PHONE_DETECTED: 0,
+  });
 
   const violationCount = React.useRef<number>(0);
 
   const startService = async () => {
+    console.log("Starting service");
+    if (objectDetector.current && faceDetector.current) {
+      console.log("Service already started");
+      return;
+    }
     const vision = await FilesetResolver.forVisionTasks(
       // path/to/wasm/root
       "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
@@ -74,23 +86,18 @@ export default function useWebCam({
     //     numFaces: 1,
     //   }
     // );
+    faceDetector.current = await FaceDetector.createFromOptions(vision, {
+      baseOptions: {
+        modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite`,
+        delegate: "GPU",
+      },
+      runningMode: "VIDEO",
+    });
     predictionJob();
     setServiceStarted(true);
   };
 
   const checkPredictions = (predictions: Detection[]) => {
-    const numPeople = predictions.reduce((acc, prediction) => {
-      return (
-        acc +
-        prediction.categories.filter(
-          (category) => category.categoryName === "person"
-        ).length
-      );
-    }, 0);
-    if (numPeople !== 1) {
-      violationCount.current += 1;
-      // Start a timer to listen if the user is still violating the rule
-    }
     predictions.forEach((prediction) => {
       if (
         prediction.categories.some((category) =>
@@ -98,12 +105,49 @@ export default function useWebCam({
         )
       ) {
         violationCount.current += 1;
+        if (violationCount.current > 100) {
+          if (warningsRef.current.PHONE_DETECTED > 2) {
+            addViolation({
+              code: "PHONE_DETECTED",
+              severity: "error",
+              timestamp: new Date(),
+            });
+            warningsRef.current.PHONE_DETECTED = 0;
+          } else {
+            warningsRef.current.PHONE_DETECTED += 1;
+            addViolation({
+              code: "PHONE_DETECTED",
+              severity: "warning",
+              timestamp: new Date(),
+            });
+          }
+        }
       }
     });
+  };
 
-    if (violationCount.current > 5) {
-      showWarningScreen();
-      violationCount.current = 0;
+  const checkFaceDetections = (predictions: Detection[]) => {
+    if (predictions.length === 0) {
+      violationCount.current += 1;
+      if (violationCount.current > 100) {
+        addViolation({
+          code: "FACE_NOT_FOUND",
+          severity: "error",
+          timestamp: new Date(),
+        });
+        violationCount.current = 0;
+      }
+    }
+    if (predictions.length > 1) {
+      violationCount.current += 1;
+      if (violationCount.current > 100) {
+        addViolation({
+          code: "TOO_MANY_FACES",
+          severity: "error",
+          timestamp: new Date(),
+        });
+        violationCount.current = 0;
+      }
     }
   };
 
@@ -136,7 +180,8 @@ export default function useWebCam({
     }
   };
 
-  const predictionJob = async () => {
+  const predictionJob = () => {
+    console.log("Running prediction job");
     const startTime = performance.now();
     const video = videoElRef.current;
     if (video) {
@@ -146,28 +191,25 @@ export default function useWebCam({
           video,
           startTime
         );
-        // const facePredictions = faceLandmarker.current?.detectForVideo(
-        //   video,
-        //   startTime
-        // );
-        // if (!predictions || !facePredictions) {
+        const fd = faceDetector.current?.detectForVideo(video, startTime);
+        if (fd) {
+          checkFaceDetections(fd.detections);
+        }
         if (!predictions) {
           violationCount.current += 1;
         }
         if (predictions) {
           checkPredictions(predictions.detections);
         }
-        // if (facePredictions) {
-        //   checkFacePredictions(facePredictions);
-        // }
       }
     }
 
-    animationRef.current = window.requestAnimationFrame(predictionJob);
+    if (serviceStarted)
+      animationRef.current = window.requestAnimationFrame(predictionJob);
   };
 
   const stopService = () => {
-    window.cancelAnimationFrame(animationRef.current!);
+    console.log("STOPPING SERVICE");
     setServiceStarted(false);
   };
 

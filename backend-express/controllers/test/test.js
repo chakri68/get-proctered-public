@@ -109,8 +109,8 @@ router.post("/:id/start-test", upload.single("face"), async (req, res) => {
     });
   } catch (err) {
     res.status(400).json({
-      message: "Invalid request",
-      error: err.message,
+      error: "Invalid request",
+      message: err.message,
     });
   }
 });
@@ -177,8 +177,8 @@ router.post("/:id/submit-answer", async (req, res) => {
     });
   } catch (err) {
     res.status(400).json({
-      message: "Invalid request",
-      error: err.message,
+      error: "Invalid request",
+      message: err.message,
     });
   }
 });
@@ -216,8 +216,8 @@ router.get("/:id", async (req, res) => {
     });
   } catch (err) {
     res.status(400).json({
-      message: "Invalid request",
-      error: err.message,
+      error: "Invalid request",
+      message: err.message,
     });
   }
 });
@@ -242,8 +242,8 @@ router.get("/", async (req, res) => {
     });
   } catch (err) {
     res.status(400).json({
-      message: "Invalid request",
-      error: err.message,
+      error: "Invalid request",
+      message: err.message,
     });
   }
 });
@@ -323,8 +323,8 @@ router.post("/:id/end-test", async (req, res) => {
     });
   } catch (err) {
     res.status(400).json({
-      message: "Invalid request",
-      error: err.message,
+      error: "Invalid request",
+      message: err.message,
     });
   }
 });
@@ -401,8 +401,8 @@ router.post("/:id/ping", upload.single("face"), async (req, res) => {
     }
   } catch (err) {
     res.status(400).json({
-      message: "Invalid request",
-      error: err.message,
+      error: "Invalid request",
+      message: err.message,
     });
   }
 });
@@ -430,8 +430,8 @@ router.post("/create", async (req, res) => {
     });
   } catch (err) {
     res.status(400).json({
-      message: "Invalid request",
-      error: err.message,
+      error: "Invalid request",
+      message: err.message,
     });
   }
 });
@@ -501,8 +501,8 @@ router.post("/:id/analytics", async (req, res) => {
     });
   } catch (err) {
     res.status(400).json({
-      message: "Invalid request",
-      error: err.message,
+      error: "Invalid request",
+      message: err.message,
     });
   }
 });

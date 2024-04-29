@@ -13,11 +13,17 @@ export const ViolationContext = React.createContext<{
   startService: () => void;
   stopService: () => void;
   serviceStarted: boolean;
+  addViolation: (
+    violation: Violation<ViolationCode>["instances"][number] & {
+      code: ViolationCode;
+    }
+  ) => void;
 }>({
   violations: [],
   startService: () => {},
   stopService: () => {},
   serviceStarted: false,
+  addViolation: () => {},
 });
 
 export default function ViolationProvider({
@@ -61,6 +67,21 @@ export default function ViolationProvider({
     }
   }, [startService]);
 
+  const addViolation = (
+    violation: Violation<ViolationCode>["instances"][number] & {
+      code: ViolationCode;
+    }
+  ) => {
+    setViolations((violations) => [
+      ...violations,
+      {
+        code: violation.code,
+        timestamp: violation.timestamp,
+        severity: violation.severity,
+      },
+    ]);
+  };
+
   return (
     <ViolationContext.Provider
       value={{
@@ -68,6 +89,7 @@ export default function ViolationProvider({
         startService: startServiceHandler,
         serviceStarted: startService,
         stopService: stopServiceHandler,
+        addViolation,
       }}
     >
       {children}

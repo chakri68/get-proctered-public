@@ -15,6 +15,7 @@ import NotifContext, {
 import instance from "@/lib/backend-connect";
 import { useParams } from "next/navigation";
 import { AxiosError } from "axios";
+import toast from "react-hot-toast";
 
 export enum QuestionStatus {
   SAVED,
@@ -119,6 +120,7 @@ export default function TestProvider({
   const testScreenEl = createRef<HTMLDivElement>();
 
   const showViolationScreen = () => {
+    stopService();
     setBannedFromTest(true);
     instance
       .post(`/test/${testId}/end-test`, {
@@ -126,11 +128,6 @@ export default function TestProvider({
       })
       .then((res) => {
         console.log(res);
-        addNotif({
-          type: NotifType.ERROR,
-          title: "Test Ended",
-          body: "You have been banned from the test.",
-        });
         setTestEnd(true);
         exitFullscreen();
       });
@@ -138,6 +135,7 @@ export default function TestProvider({
 
   const showWarningScreen = () => {
     setWarningScreen(true);
+    stopService();
   };
 
   const { startService, stopService } = useTestAnalytics({
@@ -218,20 +216,11 @@ export default function TestProvider({
       stopService();
       exitFullscreen();
       if (e instanceof AxiosError) {
-        addNotif({
-          type: NotifType.ERROR,
-          title: "Error starting test.",
-          body:
-            e.response?.data.error ??
-            e.response?.data.message ??
-            "An unknown error occurred.",
-        });
+        toast.error(
+          "Error starting the test. \n" + `${e.response?.data.message}`
+        );
       } else {
-        addNotif({
-          type: NotifType.ERROR,
-          title: "Error starting test.",
-          body: "An unknown error occurred.",
-        });
+        toast.error("Error starting the test.");
       }
       setTestLoading(false);
       return;
