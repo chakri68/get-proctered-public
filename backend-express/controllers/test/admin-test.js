@@ -59,4 +59,28 @@ router.post("/unban", async (req, res) => {
   });
 });
 
+router.post("/create", async (req, res) => {
+  try {
+    const { name, questions } = req.body;
+    if (!Array.isArray(questions)) throw new Error("Invalid questions");
+
+    const test = await prisma.test.create({
+      data: {
+        name,
+        questions,
+      },
+    });
+
+    res.json({
+      message: "Test created",
+      data: test,
+    });
+  } catch (err) {
+    res.status(400).json({
+      error: "Invalid request",
+      message: err.message,
+    });
+  }
+});
+
 export default router;

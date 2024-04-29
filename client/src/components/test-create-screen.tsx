@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useEffect, useRef, useState } from "react";
 import instance from "@/lib/backend-connect";
+import toast, { Toaster } from "react-hot-toast";
 
 type Question = {
   question: string;
@@ -81,191 +82,202 @@ export function TestCreateScreen() {
   const onSubmit: SubmitHandler<TestCreateForm> = async (data) => {
     setLoading(true);
     console.log({ data });
-    await instance.post("/test/create", {
-      name: data.title,
-      questions: data.questions.map((q, qIdx) => {
-        return {
-          ...q,
-          id: qIdx + 1,
-          options: q.options.map((o, oIdx) => {
-            return {
-              ...o,
-              id: oIdx + 1,
-            };
-          }),
-        };
-      }),
-    });
+    try {
+      const res = await instance.post("/test/admin/create", {
+        name: data.title,
+        questions: data.questions.map((q, qIdx) => {
+          return {
+            ...q,
+            id: qIdx + 1,
+            options: q.options.map((o, oIdx) => {
+              return {
+                ...o,
+                id: oIdx + 1,
+              };
+            }),
+          };
+        }),
+      });
+      setLink(res.data.data.id);
+    } catch (err) {
+      toast.error("Failed to create test");
+    }
     setLoading(false);
-    setLink("https://example.com/test/123");
   };
 
   if (link) {
     // Show the link in a box that user can copy
     return (
-      <div className="w-full max-w-2xl mx-auto  space-y-6 border rounded-lg shadow-md absolute top-[50%] left-[50%] -translate-x-[50%] -translate-y-[50%] p-16">
-        <h1 className="text-2xl font-semibold text-center">Test Created</h1>
-        <div className="space-y-2">
-          <Label htmlFor="link">Test Link</Label>
-          <TooltipProvider>
-            <Tooltip open={copied}>
-              <TooltipTrigger asChild>
-                <Input
-                  id="link"
-                  value={link}
-                  readOnly
-                  ref={linkRef}
-                  onClick={() => {
-                    linkRef.current?.select();
-                    navigator.clipboard.writeText(link);
-                    setCopied(true);
-                    setTimeout(() => {
-                      setCopied(false);
-                    }, 1000);
-                  }}
-                />
-              </TooltipTrigger>
-              <TooltipContent>
-                {copied ? (
-                  <p>Copied to clipboard</p>
-                ) : (
-                  <p>Click to copy the link</p>
-                )}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+      <>
+        <Toaster />
+        <div className="w-full max-w-2xl mx-auto  space-y-6 border rounded-lg shadow-md absolute top-[50%] left-[50%] -translate-x-[50%] -translate-y-[50%] p-16">
+          <h1 className="text-2xl font-semibold text-center">Test Created</h1>
+          <div className="space-y-2">
+            <Label htmlFor="link">Test Link</Label>
+            <TooltipProvider>
+              <Tooltip open={copied}>
+                <TooltipTrigger asChild>
+                  <Input
+                    id="link"
+                    value={link}
+                    readOnly
+                    ref={linkRef}
+                    onClick={() => {
+                      linkRef.current?.select();
+                      navigator.clipboard.writeText(link);
+                      setCopied(true);
+                      setTimeout(() => {
+                        setCopied(false);
+                      }, 1000);
+                    }}
+                  />
+                </TooltipTrigger>
+                <TooltipContent>
+                  {copied ? (
+                    <p>Copied to clipboard</p>
+                  ) : (
+                    <p>Click to copy the link</p>
+                  )}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          <div className="flex justify-end">
+            <Button
+              onClick={() => {
+                setLink(null);
+              }}
+            >
+              Create Another Test
+            </Button>
+          </div>
         </div>
-        <div className="flex justify-end">
-          <Button
-            onClick={() => {
-              setLink(null);
-            }}
-          >
-            Create Another Test
-          </Button>
-        </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-6 border rounded-lg shadow-md absolute top-[50%] left-[50%] -translate-x-[50%] -translate-y-[50%] p-16 overflow-y-auto max-h-[calc(100vh-64px)]">
-      <h1 className="text-2xl font-semibold text-center">Create Test</h1>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="title">Title of the Test</Label>
-          <Input
-            id="title"
-            placeholder="Enter test title"
-            {...register("title")}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="duration">Duration (in minutes)</Label>
-          <Input
-            id="duration"
-            placeholder="Enter test duration"
-            type="number"
-            {...register("duration")}
-          />
-        </div>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="emails">Allowed Student Emails</Label>
-        <Textarea
-          className="min-h-[100px]"
-          id="emails"
-          placeholder="Enter student emails separated by commas"
-          {...register("emails")}
-        />
-      </div>
-      <div className="space-y-6">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium">Test Questions</h3>
-            <Button
-              size="sm"
-              onClick={() => {
-                append({
-                  question: "",
-                  options: [],
-                  marks: 5,
-                  type: "singlecorrect",
-                });
-              }}
-            >
-              Add Question
-            </Button>
+    <>
+      <Toaster />
+      <div className="w-full max-w-2xl mx-auto space-y-6 border rounded-lg shadow-md absolute top-[50%] left-[50%] -translate-x-[50%] -translate-y-[50%] p-16 overflow-y-auto max-h-[calc(100vh-64px)]">
+        <h1 className="text-2xl font-semibold text-center">Create Test</h1>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="title">Title of the Test</Label>
+            <Input
+              id="title"
+              placeholder="Enter test title"
+              {...register("title")}
+            />
           </div>
-          {fields.map((field, idx) => {
-            return (
-              <div className="space-y-4" key={field.id}>
-                <div className="space-y-2">
-                  <Label htmlFor="question">Question</Label>
-                  <Input
-                    id="question"
-                    placeholder="Enter question"
-                    {...register(`questions.${idx}.question`)}
-                  />
-                </div>
-                <Options
-                  control={control}
-                  questionIdx={idx}
-                  register={register}
-                  setValue={setValue}
-                  watch={watch}
-                />
-                <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="duration">Duration (in minutes)</Label>
+            <Input
+              id="duration"
+              placeholder="Enter test duration"
+              type="number"
+              {...register("duration")}
+            />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="emails">Allowed Student Emails</Label>
+          <Textarea
+            className="min-h-[100px]"
+            id="emails"
+            placeholder="Enter student emails separated by commas"
+            {...register("emails")}
+          />
+        </div>
+        <div className="space-y-6">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium">Test Questions</h3>
+              <Button
+                size="sm"
+                onClick={() => {
+                  append({
+                    question: "",
+                    options: [],
+                    marks: 5,
+                    type: "singlecorrect",
+                  });
+                }}
+              >
+                Add Question
+              </Button>
+            </div>
+            {fields.map((field, idx) => {
+              return (
+                <div className="space-y-4" key={field.id}>
                   <div className="space-y-2">
-                    <Label htmlFor="marks">Marks</Label>
+                    <Label htmlFor="question">Question</Label>
                     <Input
-                      id="marks"
-                      placeholder="Enter marks"
-                      type="number"
-                      {...register(`questions.${idx}.marks`)}
+                      id="question"
+                      placeholder="Enter question"
+                      {...register(`questions.${idx}.question`)}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="type">Type</Label>
-                    <Select
-                      onValueChange={(value) => {
-                        setValue(
-                          `questions.${idx}.type`,
-                          value as "singlecorrect" | "multicorrect"
-                        );
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="singlecorrect">
-                          Single-Correct
-                        </SelectItem>
-                        <SelectItem value="multicorrect">
-                          Multi-Correct
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <Options
+                    control={control}
+                    questionIdx={idx}
+                    register={register}
+                    setValue={setValue}
+                    watch={watch}
+                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="marks">Marks</Label>
+                      <Input
+                        id="marks"
+                        placeholder="Enter marks"
+                        type="number"
+                        {...register(`questions.${idx}.marks`)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="type">Type</Label>
+                      <Select
+                        defaultValue={"singlecorrect"}
+                        onValueChange={(value) => {
+                          setValue(
+                            `questions.${idx}.type`,
+                            value as "singlecorrect" | "multicorrect"
+                          );
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="singlecorrect">
+                            Single-Correct
+                          </SelectItem>
+                          <SelectItem value="multicorrect">
+                            Multi-Correct
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+        </div>
+        <div className="flex justify-end">
+          <Button
+            loading={loading}
+            type="submit"
+            onClick={() => {
+              handleSubmit(onSubmit)();
+            }}
+          >
+            Create Test
+          </Button>
         </div>
       </div>
-      <div className="flex justify-end">
-        <Button
-          loading={loading}
-          type="submit"
-          onClick={() => {
-            handleSubmit(onSubmit)();
-          }}
-        >
-          Create Test
-        </Button>
-      </div>
-    </div>
+    </>
   );
 }
 
@@ -307,6 +319,14 @@ const Options = ({
     });
   }, [type]);
 
+  useEffect(() => {
+    if (type === "singlecorrect") {
+      if (!options.some((option) => option.isCorrect) && options.length > 0) {
+        setValue(`questions.${questionIdx}.options.0.isCorrect`, true);
+      }
+    }
+  }, [options]);
+
   return (
     <div className="space-y-2">
       <div className="space-y-2">
@@ -323,10 +343,24 @@ const Options = ({
                 checked={options[idx].isCorrect}
                 name={`questions.${questionIdx}`}
                 onChange={(e) => {
-                  setValue(
-                    `questions.${questionIdx}.options.${idx}.isCorrect`,
-                    !options[idx].isCorrect
-                  );
+                  if (type === "singlecorrect") {
+                    options.forEach((option, idx) => {
+                      setValue(
+                        `questions.${questionIdx}.options.${idx}.isCorrect`,
+                        false
+                      );
+                    });
+                    setValue(
+                      `questions.${questionIdx}.options.${idx}.isCorrect`,
+                      true
+                    );
+                    return;
+                  } else {
+                    setValue(
+                      `questions.${questionIdx}.options.${idx}.isCorrect`,
+                      e.target.checked
+                    );
+                  }
                 }}
               />
               <Button
