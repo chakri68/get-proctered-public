@@ -13,11 +13,11 @@ import { Toaster } from "react-hot-toast";
 export default function TestPage() {
   return (
     <>
-      <Toaster />
       <ScreenProvider>
         <WebCamProvider>
           <ViolationProvider>
             <TestProvider>
+              <Toaster />
               <TestContext.Consumer>
                 {({ isTestStarted, testLoading }) => {
                   if (!isTestStarted && !testLoading) {
