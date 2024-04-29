@@ -81,7 +81,6 @@ export function TestCreateScreen() {
 
   const onSubmit: SubmitHandler<TestCreateForm> = async (data) => {
     setLoading(true);
-    console.log({ data });
     try {
       const res = await instance.post("/test/admin/create", {
         name: data.title,
@@ -306,7 +305,6 @@ const Options = ({
   ) as Question["options"];
 
   useEffect(() => {
-    console.log({ type, options });
     options.forEach((option, idx) => {
       if (idx === 0) {
         setValue(`questions.${questionIdx}.options.${idx}.isCorrect`, true);

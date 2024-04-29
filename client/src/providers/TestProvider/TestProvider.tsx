@@ -205,7 +205,6 @@ export default function TestProvider({
     // Start the session
     const formData = new FormData();
     const snapshot = await getSnapshot();
-    console.log({ snapshot });
     formData.append("face", snapshot);
 
     try {
