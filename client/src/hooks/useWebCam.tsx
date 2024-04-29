@@ -66,6 +66,7 @@ export default function useWebCam() {
     console.log("Starting service");
     if (objectDetector.current && faceDetector.current) {
       console.log("Service already started");
+      predictionJob();
       return;
     }
     const vision = await FilesetResolver.forVisionTasks(
@@ -115,7 +116,7 @@ export default function useWebCam() {
       ) {
         console.log("Phone detected", violationCount.current);
         violationCount.current.PHONE_DETECTED += 1;
-        if (violationCount.current.PHONE_DETECTED > 100) {
+        if (violationCount.current.PHONE_DETECTED > 20) {
           if (warningsRef.current.PHONE_DETECTED > 2) {
             addViolation({
               code: "PHONE_DETECTED",
@@ -140,7 +141,7 @@ export default function useWebCam() {
     if (predictions.length === 0) {
       console.log("Face not found", violationCount.current);
       violationCount.current.FACE_NOT_FOUND += 1;
-      if (violationCount.current.FACE_NOT_FOUND > 100) {
+      if (violationCount.current.FACE_NOT_FOUND > 10) {
         addViolation({
           code: "FACE_NOT_FOUND",
           severity: "error",
@@ -152,7 +153,7 @@ export default function useWebCam() {
     if (predictions.length > 1) {
       console.log("Too many faces", violationCount.current);
       violationCount.current.TOO_MANY_FACES += 1;
-      if (violationCount.current.TOO_MANY_FACES > 100) {
+      if (violationCount.current.TOO_MANY_FACES > 20) {
         addViolation({
           code: "TOO_MANY_FACES",
           severity: "error",
