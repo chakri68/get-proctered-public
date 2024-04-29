@@ -39,25 +39,45 @@ export function TestDashboard() {
       violation: string;
       severity: string;
       timestamp: string;
+      resolved: boolean;
+      idx: number;
     }[]
   >([]);
 
-  const unBanUser = (testId: string, userId: string) => {
-    console.log({ testId, userId });
+  const markResolved = (testId: string, userId: string, eventIdx: number) => {
+    instance
+      .post(`/test/admin/mark-resolved`, {
+        testId,
+        userId,
+        eventIdx,
+      })
+      .then((res) => {
+        toast.success("Maked as resolved successfully");
+        console.log(res.data);
+        fetchData();
+      })
+      .catch((err) => {
+        if (err instanceof AxiosError) {
+          toast.error(
+            `Failed to mark as resolved - ${err.response?.data.message}`
+          );
+        } else {
+          toast.error("Failed to mark as resolved");
+        }
+      });
+  };
+
+  const unBanUser = (testId: string, userId: string, eventIdx: number) => {
     instance
       .post(`/test/admin/unban`, {
         testId,
         userId,
+        eventIdx,
       })
       .then((res) => {
         toast.success("User unbanned successfully");
         console.log(res.data);
-        setViolations((v) =>
-          v.filter(
-            (violation) =>
-              violation.studentId !== userId && violation.testId !== testId
-          )
-        );
+        fetchData();
       })
       .catch((err) => {
         if (err instanceof AxiosError) {
@@ -67,7 +87,7 @@ export function TestDashboard() {
         }
       });
   };
-  const [tests,setTests] = useState<any[]>([])
+  const [tests, setTests] = useState<any[]>([]);
 
   const fetchData = async () => {
     const res = await instance.get("/analytics");
@@ -76,7 +96,7 @@ export function TestDashboard() {
     setViolations(
       res.data.testSessions
         .map((t: any) =>
-          t.events.map((e: any) => ({
+          t.events.map((e: any, idx: number) => ({
             ...e,
             testId: t.test.id,
             test: t.test.name,
@@ -85,9 +105,11 @@ export function TestDashboard() {
             violation: e.code,
             severity: e.severity,
             timestamp: e.timestamp,
+            idx,
           }))
         )
         .flat()
+        .filter((e: any) => e.resolved === false)
         .toSorted(
           (a: any, b: any) =>
             new Date(b.timestamp as string).getTime() -
@@ -95,8 +117,8 @@ export function TestDashboard() {
         )
     );
     const allTests = await instance.get("/dashboardData");
-    console.log(allTests.data)
-    setTests(allTests.data.tests)
+    console.log(allTests.data);
+    setTests(allTests.data.tests);
   };
 
   useEffect(() => {
@@ -106,144 +128,165 @@ export function TestDashboard() {
   const deleteTest = async (id: string) => {
     await instance.post(`/dashboardData/deleteTest/${id}`);
     fetchData();
-  }
+  };
 
   return (
-      
-      <main className="flex flex-col gap-4 p-4 md:gap-8 md:p-10">
-        <section>
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold">Test Management</h1>
-            <Button size="sm" onClick={()=>{
-              router.push("/dashboard/test/create")
-            }}>Create New Test</Button>
-          </div>
-          <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {tests.map((test, idx) => (
-              <Card key={idx}>
-                <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                  <CardTitle className="text-sm font-medium">{test.name}</CardTitle>
-                  <div className="flex items-center gap-2">
-                    <Button size="icon" variant="outline">
-                      <FileEditIcon className="h-4 w-4" />
-                      <span className="sr-only">Edit</span>
-                    </Button>
-                    <Button size="icon" variant="outline" onClick={()=>{
-                      deleteTest(test.id)
-                    }}>
-                      <TrashIcon className="h-4 w-4" />
-                      <span className="sr-only">Delete</span>
-                    </Button>
+    <main className="flex flex-col gap-4 p-4 md:gap-8 md:p-10">
+      <Toaster />
+      <section>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Test Management</h1>
+          <Button
+            size="sm"
+            onClick={() => {
+              router.push("/dashboard/test/create");
+            }}
+          >
+            Create New Test
+          </Button>
+        </div>
+        <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {tests.map((test, idx) => (
+            <Card key={idx}>
+              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+                <CardTitle className="text-sm font-medium">
+                  {test.name}
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  <Button size="icon" variant="outline">
+                    <FileEditIcon className="h-4 w-4" />
+                    <span className="sr-only">Edit</span>
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    onClick={() => {
+                      deleteTest(test.id);
+                    }}
+                  >
+                    <TrashIcon className="h-4 w-4" />
+                    <span className="sr-only">Delete</span>
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Duration</span>
+                    <span className="text-sm">
+                      {test.duration ? test.duration : "20"} mins
+                    </span>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Duration</span>
-                      <span className="text-sm">{test.duration? test.duration:"20"} mins</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Questions</span>
-                      <span className="text-sm">{test.questions  ? test.questions.length : "0"}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Students</span>
-                      <span className="text-sm">{test.TestTaker ? test.TestTaker.length : "0"}</span>
-                    </div>
-                    <Button className="w-full" size="sm" variant="outline">
-                      View Details
-                    </Button>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Questions</span>
+                    <span className="text-sm">
+                      {test.questions ? test.questions.length : "0"}
+                    </span>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Students</span>
+                    <span className="text-sm">
+                      {test.TestTaker ? test.TestTaker.length : "0"}
+                    </span>
+                  </div>
+                  <Button className="w-full" size="sm" variant="outline">
+                    View Details
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
+      <section>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Violation Management</h1>
+          <div className="flex items-center gap-2">
+            <Input
+              className="w-full max-w-[300px]"
+              placeholder="Search violations..."
+              type="search"
+            />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="icon" variant="outline">
+                  <FilterIcon className="h-4 w-4" />
+                  <span className="sr-only">Filter</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-[200px]">
+                <DropdownMenuLabel>Filter by:</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuCheckboxItem>Test</DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem>Student</DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem>
+                  Violation Type
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem>Severity</DropdownMenuCheckboxItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-        </section>
-          <section>
-            <div className="flex items-center justify-between">
-              <h1 className="text-2xl font-bold">Violation Management</h1>
-              <div className="flex items-center gap-2">
-                <Input
-                  className="w-full max-w-[300px]"
-                  placeholder="Search violations..."
-                  type="search"
-                />
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
+        </div>
+        <div className="mt-4 rounded-lg border border-gray-200 shadow-sm dark:border-gray-800">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Timestamp</TableHead>
+                <TableHead>Test</TableHead>
+                <TableHead>Student</TableHead>
+                <TableHead>Violation</TableHead>
+                <TableHead>Severity</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {violations.map((v, idx) => (
+                <TableRow key={idx}>
+                  <TableCell>{timeSpentFrom(v.timestamp)}</TableCell>
+                  <TableCell>{v.test}</TableCell>
+                  <TableCell>{v.student}</TableCell>
+                  <TableCell>{v.violation}</TableCell>
+                  <TableCell>
+                    <Badge variant="destructive">{v.severity}</Badge>
+                  </TableCell>
+                  <TableCell>
                     <Button size="icon" variant="outline">
-                      <FilterIcon className="h-4 w-4" />
-                      <span className="sr-only">Filter</span>
+                      <EyeIcon className="h-4 w-4" />
+                      <span className="sr-only">View</span>
                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-[200px]">
-                    <DropdownMenuLabel>Filter by:</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuCheckboxItem>Test</DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem>Student</DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem>
-                      Violation Type
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem>
-                      Severity
-                    </DropdownMenuCheckboxItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-            <div className="mt-4 rounded-lg border border-gray-200 shadow-sm dark:border-gray-800">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Timestamp</TableHead>
-                    <TableHead>Test</TableHead>
-                    <TableHead>Student</TableHead>
-                    <TableHead>Violation</TableHead>
-                    <TableHead>Severity</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {violations.map((v, idx) => (
-                    <TableRow key={idx}>
-                      <TableCell>{timeSpentFrom(v.timestamp)}</TableCell>
-                      <TableCell>{v.test}</TableCell>
-                      <TableCell>{v.student}</TableCell>
-                      <TableCell>{v.violation}</TableCell>
-                      <TableCell>
-                        <Badge variant="destructive">{v.severity}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Button size="icon" variant="outline">
-                          <EyeIcon className="h-4 w-4" />
-                          <span className="sr-only">View</span>
+                    {v.severity === "error" && (
+                      <>
+                        {" "}
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          onClick={() => {
+                            markResolved(v.testId, v.studentId, v.idx);
+                          }}
+                        >
+                          <CheckIcon className="h-4 w-4" />
+                          <span className="sr-only">Resolve</span>
                         </Button>
-                        {v.severity === "error" && (
-                          <>
-                            {" "}
-                            <Button size="icon" variant="outline">
-                              <CheckIcon className="h-4 w-4" />
-                              <span className="sr-only">Resolve</span>
-                            </Button>
-                            <Button
-                              size="icon"
-                              variant="outline"
-                              onClick={() => {
-                                unBanUser(v.testId, v.studentId);
-                              }}
-                            >
-                              <XIcon className="h-4 w-4" />
-                              <span className="sr-only">Dismiss</span>
-                            </Button>
-                          </>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </section>
-        </main>
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          onClick={() => {
+                            unBanUser(v.testId, v.studentId, v.idx);
+                          }}
+                        >
+                          <XIcon className="h-4 w-4" />
+                          <span className="sr-only">Dismiss</span>
+                        </Button>
+                      </>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </section>
+    </main>
   );
 }
 
