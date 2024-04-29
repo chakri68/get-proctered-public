@@ -24,8 +24,10 @@ import { useEffect, useRef, useState } from "react";
 import { timeSpentFrom } from "../lib/date";
 import toast, { Toaster } from "react-hot-toast";
 import { AxiosError } from "axios";
+import { useRouter } from "next/navigation";
 
 export function TestDashboard() {
+  const router = useRouter();
   const analytics = useRef<any>(null);
 
   const [violations, setViolations] = useState<
@@ -112,7 +114,9 @@ export function TestDashboard() {
         <section>
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold">Test Management</h1>
-            <Button size="sm">Create New Test</Button>
+            <Button size="sm" onClick={()=>{
+              router.push("/dashboard/test/create")
+            }}>Create New Test</Button>
           </div>
           <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {tests.map((test, idx) => (
@@ -155,36 +159,6 @@ export function TestDashboard() {
             ))}
           </div>
         </section>
-        <section>
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold">Violation Management</h1>
-            <div className="flex items-center gap-2">
-              <Input
-                className="w-full max-w-[300px]"
-                placeholder="Search violations..."
-                type="search"
-              />
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="icon" variant="outline">
-                    <FilterIcon className="h-4 w-4" />
-                    <span className="sr-only">Filter</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-[200px]">
-                  <DropdownMenuLabel>Filter by:</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuCheckboxItem>Test</DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem>Student</DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem>
-                    Violation Type
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem>Severity</DropdownMenuCheckboxItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-            </div>
-          </section>
           <section>
             <div className="flex items-center justify-between">
               <h1 className="text-2xl font-bold">Violation Management</h1>
