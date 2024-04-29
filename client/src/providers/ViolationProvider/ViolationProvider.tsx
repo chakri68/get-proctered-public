@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import VIOLATIONS, { ViolationCode } from "./violations";
 import Violation from "./Violation";
 

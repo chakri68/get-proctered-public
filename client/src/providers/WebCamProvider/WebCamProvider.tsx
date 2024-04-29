@@ -1,3 +1,4 @@
+import FaceCam from "@/components/face-cam";
 import React, { useEffect, useState, createContext } from "react";
 
 export const WebCamContext = createContext<{
@@ -6,6 +7,7 @@ export const WebCamContext = createContext<{
   getSnapshot: () => Promise<Blob>;
   isRecording: boolean;
   resumeRecording: () => void;
+  videoElRef: React.RefObject<HTMLVideoElement>;
 }>({
   stream: null,
   setupWebCam: () => {},
@@ -15,6 +17,7 @@ export const WebCamContext = createContext<{
     }),
   isRecording: false,
   resumeRecording: () => {},
+  videoElRef: React.createRef(),
 });
 
 export default function WebCamProvider({
@@ -24,6 +27,7 @@ export default function WebCamProvider({
 }) {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [isRecording, setIsRecording] = useState(false);
+  const videoElRef = React.useRef<HTMLVideoElement>(null);
 
   const setupWebCam = () => {
     const constraints = {
@@ -59,8 +63,10 @@ export default function WebCamProvider({
         getSnapshot,
         isRecording,
         resumeRecording,
+        videoElRef,
       }}
     >
+      <FaceCam ref={videoElRef} />
       {children}
     </WebCamContext.Provider>
   );

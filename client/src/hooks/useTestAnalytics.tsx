@@ -6,6 +6,8 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { ViolationContext } from "../providers/ViolationProvider/ViolationProvider";
 import { useParams } from "next/navigation";
 import instance from "../lib/backend-connect";
+import { WebCamContext } from "@/providers/WebCamProvider/WebCamProvider";
+import useWebCam from "./useWebCam";
 
 export default function useTestAnalytics({
   showViolationScreen,
@@ -25,6 +27,12 @@ export default function useTestAnalytics({
 
   const { makeFullscreen } = useContext(ScreenContext);
   const { addNotif, notifs, removeNotif } = useContext(NotifContext);
+  const { getSnapshot } = useContext(WebCamContext);
+
+  const { startWebCamService, stopWebCamService } = useWebCam({
+    showViolationScreen,
+    showWarningScreen,
+  });
 
   const [serviceStarted, setServiceStarted] = useState<boolean>(false);
 
@@ -89,6 +97,7 @@ export default function useTestAnalytics({
       }
       return;
     }
+    startWebCamService();
     startViolationListeners();
     setServiceStarted(true);
     makeFullscreen(el);
@@ -97,6 +106,7 @@ export default function useTestAnalytics({
   const stopService = () => {
     // Clear all notifications
     notifRefs.current.forEach((ref) => removeNotif(ref));
+    stopWebCamService();
     stopViolationListeners();
     setServiceStarted(false);
   };
