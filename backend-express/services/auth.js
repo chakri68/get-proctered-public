@@ -3,7 +3,7 @@ import { JWT_SECRET } from "../utils/env.js";
 
 /**
  * @param {Parameters<import("express").RequestHandler>["0"]["cookies"]} cookies
- * @returns {Promise<{ data: import("jsonwebtoken").JwtPayload; error: null } | { data: null; message: string }>}
+ * @returns {Promise<{ data: import("jsonwebtoken").JwtPayload; message: null } | { data: null; message: string }>}
  */
 export async function verifyToken(cookies) {
   const authToken = cookies["auth-token"];
@@ -27,7 +27,7 @@ export async function verifyToken(cookies) {
 
     return {
       data: decoded,
-      error: null,
+      message: null,
     };
   } catch (err) {
     return {

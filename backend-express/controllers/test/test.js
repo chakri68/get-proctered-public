@@ -407,35 +407,6 @@ router.post("/:id/ping", upload.single("face"), async (req, res) => {
   }
 });
 
-router.post("/create", async (req, res) => {
-  try {
-    const { name, questions } = req.body;
-    const user = req.user;
-    if (!user) throw new Error("Not Authorized");
-    if (!Array.isArray(questions)) throw new Error("Invalid questions");
-
-    const { id: userId } = user;
-
-    const test = await prisma.test.create({
-      data: {
-        name,
-        questions,
-        userId,
-      },
-    });
-
-    res.json({
-      message: "Test created",
-      data: test,
-    });
-  } catch (err) {
-    res.status(400).json({
-      error: "Invalid request",
-      message: err.message,
-    });
-  }
-});
-
 router.post("/:id/analytics", async (req, res) => {
   try {
     const { id } = req.params;

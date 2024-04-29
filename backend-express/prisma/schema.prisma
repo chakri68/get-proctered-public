@@ -13,7 +13,6 @@ model User {
   name            String
   password        String
   faceDescriptors Float[]
-  Test            Test[]
   TestSession     TestSession[]
   TestTaker       TestTaker[]
 }
@@ -21,8 +20,6 @@ model User {
 model Test {
   id          String        @id @default(auto()) @map("_id") @db.ObjectId
   name        String
-  user        User          @relation(fields: [userId], references: [id])
-  userId      String        @map("userId") @db.ObjectId
   TestSession TestSession[]
   questions   Json // { id: string, question: string, options: { id: string, option: string, isCorrect: boolean }[] }[]
   TestTaker   TestTaker[]
