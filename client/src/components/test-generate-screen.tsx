@@ -40,6 +40,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import instance from "@/lib/backend-connect";
 import toast, { Toaster } from "react-hot-toast";
+import { countPossibleCombinations } from "../lib/test-generation";
 
 type Question = {
   question: string;
@@ -54,30 +55,30 @@ type Question = {
 type TestCreateForm = {
   title: string;
   duration: string;
-  emails: string;
-  questions: Question[];
+  totalMarks: string;
+  questions: Question[]; // Question bank
 };
 
-export function TestCreateScreen() {
+export function TestGenerateScreen() {
   const { control, register, setValue, handleSubmit, watch } =
     useForm<TestCreateForm>({
       defaultValues: {
         title: "",
         duration: "",
-        emails: "",
         questions: [],
+        totalMarks: "",
       },
     });
+
+  const questions = watch("questions") as Question[];
+  const totalMarks = parseInt(watch("totalMarks"));
 
   const [loading, setLoading] = useState(false);
   const [link, setLink] = useState<string | null>(null);
   const linkRef = useRef<HTMLInputElement>(null);
   const [copied, setCopied] = useState(false);
 
-  const { append, fields, remove } = useFieldArray({
-    control,
-    name: "questions",
-  });
+  const [file, setFile] = useState<File | null>(null);
 
   const onSubmit: SubmitHandler<TestCreateForm> = async (data) => {
     setLoading(true);
@@ -96,15 +97,43 @@ export function TestCreateScreen() {
             }),
           };
         }),
-        generate: false,
-        totalMarks: data.questions.reduce((acc, q) => acc + q.marks, 0),
+        generate: true,
         totalTime: parseInt(data.duration),
+        totalMarks: parseInt(data.totalMarks),
       });
       setLink(res.data.data.id);
     } catch (err) {
       toast.error("Failed to create test");
     }
     setLoading(false);
+  };
+
+  const handleFileParsing = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      const questions = content
+        .trim()
+        .split("\n\n")
+        .map((line) => {
+          const [question, ...options] = line.trim().split("\n");
+          const [ques, marks, type] = question.trim().split(",");
+          return {
+            question: ques,
+            options: options.map((option) => {
+              const [opt, isCorrect] = option.split(",");
+              return {
+                option: opt,
+                isCorrect: isCorrect === "true",
+              };
+            }),
+            marks: parseInt(marks),
+            type: type as Question["type"],
+          };
+        });
+      setValue("questions", questions);
+    };
+    reader.readAsText(file);
   };
 
   if (link) {
@@ -150,7 +179,7 @@ export function TestCreateScreen() {
                 setLink(null);
               }}
             >
-              Create Another Test
+              Generate Another Test
             </Button>
           </div>
         </div>
@@ -183,100 +212,56 @@ export function TestCreateScreen() {
           </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="emails">Allowed Student Emails</Label>
-          <Textarea
-            className="min-h-[100px]"
-            id="emails"
-            placeholder="Enter student emails separated by commas"
-            {...register("emails")}
+          <Label htmlFor="emails">Total Marks</Label>
+          <Input
+            id="duration"
+            placeholder="Enter test duration"
+            type="number"
+            {...register("totalMarks")}
           />
         </div>
-        <div className="space-y-6">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-medium">Test Questions</h3>
-              <Button
-                size="sm"
-                onClick={() => {
-                  append({
-                    question: "",
-                    options: [],
-                    marks: 5,
-                    type: "singlecorrect",
-                  });
-                }}
-              >
-                Add Question
-              </Button>
-            </div>
-            {fields.map((field, idx) => {
-              return (
-                <div className="space-y-4" key={field.id}>
-                  <div className="space-y-2">
-                    <Label htmlFor="question">Question</Label>
-                    <Input
-                      id="question"
-                      placeholder="Enter question"
-                      {...register(`questions.${idx}.question`)}
-                    />
-                  </div>
-                  <Options
-                    control={control}
-                    questionIdx={idx}
-                    register={register}
-                    setValue={setValue}
-                    watch={watch}
-                  />
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="marks">Marks</Label>
-                      <Input
-                        id="marks"
-                        placeholder="Enter marks"
-                        type="number"
-                        {...register(`questions.${idx}.marks`)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="type">Type</Label>
-                      <Select
-                        defaultValue={"singlecorrect"}
-                        onValueChange={(value) => {
-                          setValue(
-                            `questions.${idx}.type`,
-                            value as "singlecorrect" | "multicorrect"
-                          );
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="singlecorrect">
-                            Single-Correct
-                          </SelectItem>
-                          <SelectItem value="multicorrect">
-                            Multi-Correct
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+        <div className="space-y-2">
+          {/* Upload div for csv */}
+          <Label htmlFor="questions">Upload questions</Label>
+          <div className="flex items-center gap-2">
+            <input
+              type="file"
+              accept=".csv"
+              onChange={(e) => {
+                setFile(e.target.files?.[0] ?? null);
+              }}
+            />
+            <Button
+              onClick={() => {
+                if (!file) {
+                  return;
+                }
+                handleFileParsing(file);
+              }}
+            >
+              Parse the csv
+            </Button>
+            {questions.length > 0 && !isNaN(totalMarks) && (
+              <p>
+                {countPossibleCombinations(questions, totalMarks)} Combination
+                possible!
+              </p>
+            )}
           </div>
-        </div>
-        <div className="flex justify-end">
-          <Button
-            loading={loading}
-            type="submit"
-            onClick={() => {
-              handleSubmit(onSubmit)();
-            }}
-          >
-            Create Test
-          </Button>
+          <div className="space-y-2">
+            <Button
+              disabled={
+                loading ||
+                questions.length === 0 ||
+                isNaN(totalMarks) ||
+                !countPossibleCombinations(questions, totalMarks)
+              }
+              loading={loading}
+              onClick={handleSubmit(onSubmit)}
+            >
+              Create Test
+            </Button>
+          </div>
         </div>
       </div>
     </>
