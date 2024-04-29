@@ -9,6 +9,8 @@ const checkAuth = async (req, res, next) => {
   try {
     const { data, error } = await verifyToken(req.cookies);
 
+    console.log({ data, error });
+
     if (error || !data) {
       throw new Error(error);
     }
