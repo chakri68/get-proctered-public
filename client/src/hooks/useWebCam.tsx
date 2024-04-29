@@ -107,7 +107,6 @@ export default function useWebCam() {
   };
 
   const checkPredictions = (predictions: Detection[]) => {
-    console.log({ predictions });
     predictions.forEach((prediction) => {
       if (
         prediction.categories.some((category) =>
