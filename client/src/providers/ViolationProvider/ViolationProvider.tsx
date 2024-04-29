@@ -6,6 +6,7 @@ type ViolationState = {
   code: ViolationCode;
   timestamp: Date;
   severity: "error" | "warning";
+  snapshot?: Blob;
 };
 
 export const ViolationContext = React.createContext<{
@@ -16,6 +17,7 @@ export const ViolationContext = React.createContext<{
   addViolation: (
     violation: Violation<ViolationCode>["instances"][number] & {
       code: ViolationCode;
+      snapshot?: Blob;
     }
   ) => void;
 }>({
@@ -70,6 +72,7 @@ export default function ViolationProvider({
   const addViolation = (
     violation: Violation<ViolationCode>["instances"][number] & {
       code: ViolationCode;
+      snapshot?: Blob;
     }
   ) => {
     setViolations((violations) => [
@@ -78,6 +81,7 @@ export default function ViolationProvider({
         code: violation.code,
         timestamp: violation.timestamp,
         severity: violation.severity,
+        snapshot: violation.snapshot,
       },
     ]);
   };

@@ -14,6 +14,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
 
+app.use(express.static("public"));
+
 const port = 4000;
 
 const sslOptions = {
