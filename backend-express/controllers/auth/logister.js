@@ -51,6 +51,8 @@ router.post("/", upload.single("face"), async (req, res) => {
       res.cookie("auth-token", token, {
         httpOnly: true,
         maxAge: 1000 * 60 * 60 * 6,
+        sameSite: "none",
+        secure: true,
       });
 
       return res.json({
@@ -80,6 +82,8 @@ router.post("/", upload.single("face"), async (req, res) => {
     res.cookie("auth-token", token, {
       httpOnly: true,
       maxAge: 1000 * 60 * 60 * 6,
+      sameSite: "none",
+      secure: true,
     });
 
     return res.json({
