@@ -3,7 +3,11 @@ import prisma from "../../prisma/prisma.js";
 import checkAuth from "../../middleware/auth.js";
 import multer from "multer";
 import { compareFaceToDescriptor } from "../../services/check-face.js";
-import { checkUserTest } from "../../services/test.js";
+import {
+  checkUserTest,
+  getQuestions,
+  getRandomCombination,
+} from "../../services/test.js";
 import { uploadFile } from "../../services/upload.js";
 
 const storage = multer.memoryStorage();
@@ -109,6 +113,9 @@ router.post("/:id/start-test", upload.single("face"), async (req, res) => {
         startTime: new Date(),
         endTime: null,
         userId: userId,
+        generatedQuestions: test.generate
+          ? getRandomCombination(test.questions, test.totalMarks)
+          : "null",
       },
     });
 
@@ -207,16 +214,24 @@ router.get("/:id", async (req, res) => {
     //   });
     // }
 
-    const test = await prisma.test.findUnique({
+    const test = await prisma.test.findUniqueOrThrow({
       where: {
         id,
       },
     });
 
-    if (!test) {
-      return res.status(404).json({
-        message: "Test not found",
-      });
+    const testSession = await prisma.testSession.findFirstOrThrow({
+      where: {
+        testId: id,
+        userId: user.id,
+      },
+    });
+
+    if (
+      Array.isArray(testSession.generatedQuestions) &&
+      testSession.generatedQuestions.length > 0
+    ) {
+      test.questions = testSession.generatedQuestions;
     }
 
     res.json({

@@ -221,10 +221,10 @@ function QuestionCard() {
         </div>
         <div className="flex items-center gap-2">
           <div className="bg-gray-900 text-white px-3 py-1 rounded-full text-sm font-medium dark:bg-gray-50">
-            singleselect
+            {currentQuestion.type}
           </div>
           <div className="bg-gray-900 text-white px-3 py-1 rounded-full text-sm font-medium dark:bg-gray-50">
-            5 Marks
+            {currentQuestion.marks} Marks
           </div>
         </div>
       </div>

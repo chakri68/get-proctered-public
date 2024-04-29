@@ -1,5 +1,6 @@
 import { Router } from "express";
 import prisma from "../../prisma/prisma.js";
+import { getRandomCombination } from "../../services/test.js";
 
 const router = Router();
 
@@ -145,13 +146,16 @@ router.post("/mark-resolved", async (req, res) => {
 
 router.post("/create", async (req, res) => {
   try {
-    const { name, questions } = req.body;
+    const { name, questions, generate, totalMarks, totalTime } = req.body;
     if (!Array.isArray(questions)) throw new Error("Invalid questions");
 
     const test = await prisma.test.create({
       data: {
         name,
         questions,
+        generate,
+        totalMarks,
+        totalTime,
       },
     });
 

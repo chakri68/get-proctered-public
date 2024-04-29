@@ -34,6 +34,8 @@ export type Question = {
   id: string;
   question: string;
   options: Option[];
+  marks: number;
+  type: "singlecorrect" | "multicorrect";
 };
 
 export type Option = {
@@ -77,6 +79,8 @@ export const TestContext = createContext<{
     id: "",
     question: "",
     options: [],
+    marks: 0,
+    type: "singlecorrect",
   },
   goToNextQuestion: () => new Promise(() => {}),
   goToQuestion: () => new Promise(() => {}),
@@ -106,6 +110,8 @@ export default function TestProvider({
     id: "",
     question: "",
     options: [],
+    marks: 0,
+    type: "singlecorrect",
   });
   const [testEnd, setTestEnd] = useState<boolean>(false);
   const [bannedFromTest, setBannedFromTest] = useState<boolean>(false);
@@ -236,7 +242,7 @@ export default function TestProvider({
     );
 
     // Fetch first question
-    await _fetchQuestion("1");
+    await _fetchQuestion(questionIds[0]);
 
     setTestLoading(false);
     setIsTestStarted(true);
@@ -259,6 +265,7 @@ export default function TestProvider({
     const q = res.data.data.questions as Question[];
     const questionIds = q.map((q) => q.id.toString());
     const question = q.find((q) => q.id.toString() === questionId)!;
+    console.log({ question, questionId });
     setCurrentQuestion({
       id: questionId,
       question: question.question,
@@ -267,6 +274,8 @@ export default function TestProvider({
         option: option.option,
         isCorrect: option.isCorrect,
       })),
+      marks: question.marks,
+      type: question.type,
     });
   };
 
