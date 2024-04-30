@@ -28,6 +28,7 @@ import { TestSkeletonScreen } from "./test-skeleton-screen";
 import { TestViolationScreen } from "./test-violation-screen";
 import WebcamCapture from "./WebCam";
 import { formatDuration } from "@/lib/date";
+import { ViolationContext } from "@/providers/ViolationProvider/ViolationProvider";
 
 export function TestScreen() {
   const {
@@ -42,6 +43,8 @@ export function TestScreen() {
     testEnd,
     testDetails,
   } = useContext(TestContext);
+
+  const { violations } = useContext(ViolationContext);
 
   const [fullLoad, setFullLoad] = useState(false);
   // const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -77,6 +80,13 @@ export function TestScreen() {
                 You have been warned for violating the test rules. You can
                 continue the test but your actions will be recorded.
               </div>
+              {/* Show the last recorded violation */}
+              {violations.length > 0 && (
+                <div className="mb-4">
+                  <div className="font-semibold">Last Violation:</div>
+                  <div>{violations[violations.length - 1].code}</div>
+                </div>
+              )}
               <Button
                 onClick={() => {
                   continueFromWarning();

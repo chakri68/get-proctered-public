@@ -49,50 +49,54 @@ export function StartScreen() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-xl">Proctored Test: Introduction</CardTitle>
-        <CardDescription>
-          Please read the instructions carefully before starting the test.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="grid gap-4">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <CameraIcon className="w-6 h-6" />
-            <span>Video Recording</span>
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl">
+            Proctored Test: Introduction
+          </CardTitle>
+          <CardDescription>
+            Please read the instructions carefully before starting the test.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <CameraIcon className="w-6 h-6" />
+              <span>Video Recording</span>
+            </div>
+            {isRecording ? (
+              <Badge color="green">Enabled</Badge>
+            ) : (
+              <Badge
+                color="red"
+                style={{ cursor: "pointer" }}
+                onClick={() => {
+                  resumeRecording();
+                }}
+              >
+                Enable
+              </Badge>
+            )}
           </div>
-          {isRecording ? (
-            <Badge color="green">Enabled</Badge>
-          ) : (
-            <Badge
-              color="red"
-              style={{ cursor: "pointer" }}
-              onClick={() => {
-                resumeRecording();
-              }}
-            >
-              Enable
-            </Badge>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <ShieldCheckIcon className="w-6 h-6" />
-          <span>Security Protocols</span>
-        </div>
-      </CardContent>
-      <CardFooter>
-        <Button
-          size="lg"
-          onClick={() => {
-            startTest();
-          }}
-          disabled={!isRecording}
-        >
-          Start Test
-        </Button>
-      </CardFooter>
-    </Card>
+          <div className="flex items-center gap-2">
+            <ShieldCheckIcon className="w-6 h-6" />
+            <span>Security Protocols</span>
+          </div>
+        </CardContent>
+        <CardFooter>
+          <Button
+            size="lg"
+            onClick={() => {
+              startTest();
+            }}
+            disabled={!isRecording}
+          >
+            Start Test
+          </Button>
+        </CardFooter>
+      </Card>
+    </>
   );
 }
 

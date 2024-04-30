@@ -4,7 +4,6 @@
  * Documentation: https://v0.dev/docs#integrating-generated-code-into-your-nextjs-app
  */
 import { Skeleton } from "@/components/ui/skeleton";
-import { div } from "@tensorflow/tfjs-node";
 
 export function TestSkeletonScreen({ className }: { className?: string }) {
   return (
