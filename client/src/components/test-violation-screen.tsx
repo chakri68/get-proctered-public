@@ -18,10 +18,12 @@ To read more about using these font, please visit the Next.js documentation:
 - Pages Directory: https://nextjs.org/docs/pages/building-your-application/optimizing/fonts
 **/
 import { Button } from "@/components/ui/button";
+import { ViolationContext } from "@/providers/ViolationProvider/ViolationProvider";
 import { useRouter } from "next/navigation";
+import { useContext } from "react";
 
 export function TestViolationScreen() {
-  const router = useRouter();
+  const { violations } = useContext(ViolationContext);
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-90 z-50">
@@ -29,8 +31,14 @@ export function TestViolationScreen() {
         <div className="space-y-4">
           <div className="text-center">
             <h1 className="text-3xl font-bold text-red-500">
-              Violation Detected
+              Violation Detected 🚨
             </h1>
+            {/* Show the last violation code */}
+            {violations.length > 0 && (
+              <p className="text-gray-500 dark:text-gray-400 mt-2">
+                {violations[violations.length - 1].code}
+              </p>
+            )}
             <p className="text-gray-500 dark:text-gray-400 mt-2">
               Our proctoring software has detected a violation of the exam
               rules.
