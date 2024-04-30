@@ -29,6 +29,7 @@ import { TestViolationScreen } from "./test-violation-screen";
 import WebcamCapture from "./WebCam";
 import { formatDuration } from "@/lib/date";
 import { ViolationContext } from "@/providers/ViolationProvider/ViolationProvider";
+import toast from "react-hot-toast";
 
 export function TestScreen() {
   const {
@@ -47,23 +48,30 @@ export function TestScreen() {
   const { violations } = useContext(ViolationContext);
 
   const [fullLoad, setFullLoad] = useState(false);
-  // const timerRef = useRef<NodeJS.Timeout | null>(null);
-  // const timerElRef = useRef<HTMLSpanElement | null>(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timeRemainingElRef = useRef<HTMLSpanElement | null>(null);
+  const testEndedRef = useRef(false);
 
-  // useEffect(() => {
-  //   if (testDetails) {
-  //     if (timerRef.current) {
-  //       clearInterval(timerRef.current);
-  //     }
-  //     timerRef.current = setInterval(() => {
-  //       // testDetails.duration is in mins
-  //       testDetails.duration -= 1 / 60;
-  //       if (timerElRef.current) {
-  //         timerElRef.current.innerText = formatDuration(testDetails.duration);
-  //       }
-  //     }, 1000);
-  //   }
-  // }, [testDetails]);
+  useEffect(() => {
+    if (testDetails) {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+      timerRef.current = setInterval(() => {
+        // testDetails.duration is in mins
+        const remainingTime = testDetails.endTime.getTime() - Date.now();
+        if (remainingTime < 0 && testEndedRef.current === false) {
+          if (timerRef.current) clearInterval(timerRef.current);
+          testEndedRef.current = true;
+          toast.error("Test has ended. Submitting your responses.");
+          submitTest();
+        }
+        if (timeRemainingElRef.current) {
+          timeRemainingElRef.current.innerText = formatDuration(remainingTime);
+        }
+      }, 1000);
+    }
+  }, [testDetails]);
 
   if (testLoading) return <TestSkeletonScreen />;
   if (bannedFromTest) return <TestViolationScreen />;
@@ -172,7 +180,7 @@ export function TestScreen() {
         <div className="flex items-center justify-between">
           {testDetails && (
             <div className="text-lg font-semibold">
-              Time Remaining: {testDetails.duration} mins
+              Time Remaining: <span ref={timeRemainingElRef}></span>
             </div>
           )}
           <div className="flex items-center gap-2">

@@ -12,10 +12,7 @@ export function timeSpentFrom(date: string) {
   return Math.round(time / 1000 / 60 / 60 / 24 / 30 / 12) + "y ago";
 }
 
-export function formatDuration(mins: number) {
-  console.log({ mins });
+export function formatDuration(ms: number) {
   // mins can be a float too
-  const hours = Math.floor(mins / 60);
-  const minutes = Math.floor(mins % 60);
-  return `${hours}h ${minutes}m ${Math.round((mins % 1) * 60)}s`;
+  return `${Math.floor(ms / 60000)}m ${Math.floor((ms % 60000) / 1000)}s`;
 }

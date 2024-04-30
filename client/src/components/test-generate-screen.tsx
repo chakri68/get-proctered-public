@@ -100,6 +100,7 @@ export function TestGenerateScreen() {
         generate: true,
         totalTime: parseInt(data.duration),
         totalMarks: parseInt(data.totalMarks),
+        startTime: new Date().toISOString(),
       });
       setLink(res.data.data.id);
     } catch (err) {

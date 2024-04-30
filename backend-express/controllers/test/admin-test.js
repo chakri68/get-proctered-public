@@ -146,7 +146,8 @@ router.post("/mark-resolved", async (req, res) => {
 
 router.post("/create", async (req, res) => {
   try {
-    const { name, questions, generate, totalMarks, totalTime } = req.body;
+    const { name, questions, generate, totalMarks, totalTime, startTime } =
+      req.body;
     if (!Array.isArray(questions)) throw new Error("Invalid questions");
 
     const test = await prisma.test.create({
@@ -155,7 +156,10 @@ router.post("/create", async (req, res) => {
         questions,
         generate,
         totalMarks,
-        totalTime,
+        startTime: startTime,
+        endTime: new Date(
+          new Date(startTime).getTime() + totalTime * 60 * 1000
+        ).toISOString(),
       },
     });
 
