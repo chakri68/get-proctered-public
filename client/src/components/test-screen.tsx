@@ -23,10 +23,11 @@ import {
   QuestionStatus,
   TestContext,
 } from "@/providers/TestProvider/TestProvider";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { TestSkeletonScreen } from "./test-skeleton-screen";
 import { TestViolationScreen } from "./test-violation-screen";
 import WebcamCapture from "./WebCam";
+import { formatDuration } from "@/lib/date";
 
 export function TestScreen() {
   const {
@@ -39,9 +40,27 @@ export function TestScreen() {
     continueFromWarning,
     submitTest,
     testEnd,
+    testDetails,
   } = useContext(TestContext);
 
   const [fullLoad, setFullLoad] = useState(false);
+  // const timerRef = useRef<NodeJS.Timeout | null>(null);
+  // const timerElRef = useRef<HTMLSpanElement | null>(null);
+
+  // useEffect(() => {
+  //   if (testDetails) {
+  //     if (timerRef.current) {
+  //       clearInterval(timerRef.current);
+  //     }
+  //     timerRef.current = setInterval(() => {
+  //       // testDetails.duration is in mins
+  //       testDetails.duration -= 1 / 60;
+  //       if (timerElRef.current) {
+  //         timerElRef.current.innerText = formatDuration(testDetails.duration);
+  //       }
+  //     }, 1000);
+  //   }
+  // }, [testDetails]);
 
   if (testLoading) return <TestSkeletonScreen />;
   if (bannedFromTest) return <TestViolationScreen />;
@@ -141,12 +160,16 @@ export function TestScreen() {
     <div className="flex h-screen w-full">
       <div className="bg-gray-100 dark:bg-gray-800 p-6 flex flex-col gap-6 rounded-md w-full">
         <div className="flex items-center justify-between">
-          <div className="text-lg font-semibold">Time Remaining: 00:45</div>
+          {testDetails && (
+            <div className="text-lg font-semibold">
+              Time Remaining: {testDetails.duration} mins
+            </div>
+          )}
           <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline">
+            {/* <Button size="sm" variant="outline">
               <ClockIcon className="w-4 h-4 mr-2" />
               Pause
-            </Button>
+            </Button> */}
             <Button
               size="sm"
               variant="outline"
@@ -178,7 +201,11 @@ export function TestScreen() {
               })}
             </div>
 
-            {fullLoad ? <TestSkeletonScreen /> : <QuestionCard />}
+            {fullLoad ? (
+              <TestSkeletonScreen className="shadow-sm bg-gray-200 rounded-md w-[32rem]" />
+            ) : (
+              <QuestionCard />
+            )}
             <WebcamCapture />
           </div>
         </div>

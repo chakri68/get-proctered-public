@@ -65,6 +65,7 @@ export const TestContext = createContext<{
   testEnd: boolean;
   registered: { email: string; name: string } | null;
   registerUser: (email: string, name: string) => void;
+  testDetails: { name: string; duration: number } | null;
 }>({
   answerState: [],
   saveResponse: () => new Promise(() => {}),
@@ -92,6 +93,7 @@ export const TestContext = createContext<{
   testEnd: false,
   registered: null,
   registerUser: () => {},
+  testDetails: null,
 });
 
 export default function TestProvider({
@@ -102,6 +104,11 @@ export default function TestProvider({
   const { testId } = useParams();
   const { getSnapshot } = useContext(WebCamContext);
   const { exitFullscreen } = useContext(ScreenContext);
+
+  const [testDetails, setTestDetails] = useState<{
+    name: string;
+    duration: number;
+  } | null>(null);
 
   const [answerState, setAnswerState] = useState<AnswerState[]>([]);
   const [isTestStarted, setIsTestStarted] = useState<boolean>(false);
@@ -231,6 +238,8 @@ export default function TestProvider({
       return;
     }
 
+    _updateTestDetails();
+
     // Fetch question ids
     const questionIds = await _fetchQuestionIds();
     setAnswerState(
@@ -295,6 +304,15 @@ export default function TestProvider({
     setWarningScreen(false);
   };
 
+  const _updateTestDetails = () => {
+    instance.get(`/test/${testId}`).then((res) => {
+      setTestDetails({
+        name: res.data.data.name,
+        duration: res.data.data.totalTime,
+      });
+    });
+  };
+
   return (
     <TestContext.Provider
       value={{
@@ -320,6 +338,7 @@ export default function TestProvider({
         registerUser: (email: string, name: string) => {
           setRegistered({ email, name });
         },
+        testDetails,
       }}
     >
       <div id="test-screen" ref={testScreenEl}>
