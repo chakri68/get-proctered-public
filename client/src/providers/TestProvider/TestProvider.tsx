@@ -65,7 +65,11 @@ export const TestContext = createContext<{
   testEnd: boolean;
   registered: { email: string; name: string } | null;
   registerUser: (email: string, name: string) => void;
-  testDetails: { name: string; duration: number } | null;
+  testDetails: {
+    name: string;
+    startTime: Date;
+    endTime: Date;
+  } | null;
 }>({
   answerState: [],
   saveResponse: () => new Promise(() => {}),
@@ -107,7 +111,8 @@ export default function TestProvider({
 
   const [testDetails, setTestDetails] = useState<{
     name: string;
-    duration: number;
+    startTime: Date;
+    endTime: Date;
   } | null>(null);
 
   const [answerState, setAnswerState] = useState<AnswerState[]>([]);
@@ -308,7 +313,8 @@ export default function TestProvider({
     instance.get(`/test/${testId}`).then((res) => {
       setTestDetails({
         name: res.data.data.name,
-        duration: res.data.data.totalTime,
+        startTime: new Date(res.data.data.startTime),
+        endTime: new Date(res.data.data.endTime),
       });
     });
   };

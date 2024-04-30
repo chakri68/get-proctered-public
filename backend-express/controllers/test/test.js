@@ -60,6 +60,16 @@ router.post("/:id/start-test", upload.single("face"), async (req, res) => {
       });
     }
 
+    if (
+      new Date() > new Date(test.endTime) ||
+      new Date() < new Date(test.startTime)
+    ) {
+      console.log(new Date(), new Date(test.endTime), new Date(test.startTime));
+      return res.status(400).json({
+        message: "Test not available",
+      });
+    }
+
     // Check if the user is allowed to take the test
     // const { data, error } = await checkUserTest(id, userId);
 
@@ -146,6 +156,27 @@ router.post("/:id/submit-answer", async (req, res) => {
     //     message: error,
     //   });
     // }
+
+    const test = await prisma.test.findUnique({
+      where: {
+        id: id,
+      },
+    });
+
+    if (!test) {
+      return res.status(404).json({
+        message: "Test not found",
+      });
+    }
+
+    if (
+      new Date() > new Date(test.endTime) ||
+      new Date() < new Date(test.startTime)
+    ) {
+      return res.status(400).json({
+        message: "Test not available",
+      });
+    }
 
     const testSession = await prisma.testSession.findFirst({
       where: {

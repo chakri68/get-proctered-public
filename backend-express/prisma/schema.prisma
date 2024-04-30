@@ -24,8 +24,9 @@ model Test {
   questions   Json // { id: string, question: string, options: { id: string, option: string, isCorrect: boolean }[] }[]
   generate    Boolean
   totalMarks  Int
-  totalTime   Int
   TestTaker   TestTaker[]
+  startTime   DateTime
+  endTime     DateTime
 }
 
 model TestSession {

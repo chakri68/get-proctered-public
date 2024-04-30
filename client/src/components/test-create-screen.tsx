@@ -99,6 +99,7 @@ export function TestCreateScreen() {
         generate: false,
         totalMarks: data.questions.reduce((acc, q) => acc + q.marks, 0),
         totalTime: parseInt(data.duration),
+        startTime: new Date().toISOString(),
       });
       setLink(res.data.data.id);
     } catch (err) {
