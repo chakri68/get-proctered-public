@@ -203,7 +203,7 @@ export function TestGenerateScreen() {
   return (
     <>
       <Toaster />
-      <div className="w-full max-w-2xl mx-auto space-y-6 border rounded-lg shadow-md absolute top-[50%] left-[50%] -translate-x-[50%] -translate-y-[50%] p-16 overflow-y-auto max-h-[calc(100vh-64px)]">
+      <div className="w-full max-w-2xl mx-auto space-y-6 border rounded-lg shadow-md absolute top-[50%] left-[50%] -translate-x-[50%] -translate-y-[50%] px-16 py-12 overflow-y-auto max-h-[calc(100vh-64px)]">
         <h1 className="text-2xl font-semibold text-center">Create Test</h1>
         <div className="space-y-2">
           <Label htmlFor="title">Title of the Test</Label>
