@@ -172,7 +172,7 @@ export function TestCreateScreen() {
     <>
       <Toaster />
       <Link href="./generate">
-        <button className="rounded-lg shadow-md flex font-semibold items-center p-3 absolute top-[10%] left-[50%] -translate-x-[50%] -translate-y-[50%]">
+        <button className="rounded-lg shadow-md flex font-semibold items-center p-3 mb-16 absolute top-[10%] left-[50%] -translate-x-[50%] -translate-y-[50%]">
           <span>Generate Test via CSV file</span>
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -190,7 +190,7 @@ export function TestCreateScreen() {
           </svg>
         </button>
       </Link>
-      <div className="w-full max-w-2xl mx-auto space-y-6 border rounded-lg shadow-md absolute top-[50%] left-[50%] -translate-x-[50%] -translate-y-[50%] p-16 overflow-y-auto max-h-[calc(100vh-64px)]">
+      <div className="w-full max-w-2xl mx-auto space-y-6 border rounded-lg shadow-md absolute top-[52%] left-[50%] -translate-x-[50%] -translate-y-[50%] p-6 overflow-y-auto max-h-[calc(78vh-64px)]">
         <h1 className="text-2xl font-semibold text-center">Create Test</h1>
         <div className="space-y-2">
           <Label htmlFor="title">Title of the Test</Label>
@@ -230,7 +230,7 @@ export function TestCreateScreen() {
             {...register("emails")}
           />
         </div>
-        <div className="space-y-6">
+        <div className="space-y-4">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-medium">Test Questions</h3>
