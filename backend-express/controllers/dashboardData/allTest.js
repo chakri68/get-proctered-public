@@ -37,4 +37,25 @@ router.post("/deleteTest/:id", async (req, res) => {
 }
 );
 
+router.get("/getTest/:id", async (req, res) => {
+  try{
+    const {id: testId} = req.params;
+    const test = await prisma.test.findUnique({
+      where: {
+        id: testId,
+      },
+    });
+    
+    return res.json({
+      test,
+    });
+  }catch(err){
+    console.log(err);
+    return res.status(500).json({
+      error: "Internal Server Error",
+    });
+  }
+}
+);
+
 export default router;
