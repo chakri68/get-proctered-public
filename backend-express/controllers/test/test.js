@@ -64,9 +64,10 @@ router.post("/:id/start-test", upload.single("face"), async (req, res) => {
       new Date() > new Date(test.endTime) ||
       new Date() < new Date(test.startTime)
     ) {
-      console.log(new Date(), new Date(test.endTime), new Date(test.startTime));
       return res.status(400).json({
-        message: "Test not available",
+        message: `Test not available. You are allowed to take the test from ${
+          test.startTime
+        } to ${test.endTime}.\nCurrent time: ${new Date()}`,
       });
     }
 
@@ -174,7 +175,9 @@ router.post("/:id/submit-answer", async (req, res) => {
       new Date() < new Date(test.startTime)
     ) {
       return res.status(400).json({
-        message: "Test not available",
+        message: `Test not available. You are allowed to take the test from ${
+          test.startTime
+        } to ${test.endTime}.\nCurrent time: ${new Date()}`,
       });
     }
 

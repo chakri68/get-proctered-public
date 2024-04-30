@@ -40,6 +40,8 @@ import {
 import { useEffect, useRef, useState } from "react";
 import instance from "@/lib/backend-connect";
 import toast, { Toaster } from "react-hot-toast";
+import { DateTimePicker } from "./ui/date-time-picker/date-time-picker";
+import { DateValue } from "react-aria";
 
 type Question = {
   question: string;
@@ -55,6 +57,7 @@ type TestCreateForm = {
   title: string;
   duration: string;
   emails: string;
+  startTime: DateValue;
   questions: Question[];
 };
 
@@ -68,6 +71,7 @@ export function TestCreateScreen() {
         questions: [],
       },
     });
+  const startTime = watch("startTime");
 
   const [loading, setLoading] = useState(false);
   const [link, setLink] = useState<string | null>(null);
@@ -98,8 +102,11 @@ export function TestCreateScreen() {
         }),
         generate: false,
         totalMarks: data.questions.reduce((acc, q) => acc + q.marks, 0),
-        totalTime: parseInt(data.duration),
-        startTime: new Date().toISOString(),
+        startTime: data.startTime.toDate("ist").toISOString(),
+        endTime: new Date(
+          data.startTime.toDate("ist").getTime() +
+            parseInt(data.duration) * 60 * 1000
+        ).toISOString(),
       });
       setLink(res.data.data.id);
     } catch (err) {
@@ -164,13 +171,23 @@ export function TestCreateScreen() {
       <Toaster />
       <div className="w-full max-w-2xl mx-auto space-y-6 border rounded-lg shadow-md absolute top-[50%] left-[50%] -translate-x-[50%] -translate-y-[50%] p-16 overflow-y-auto max-h-[calc(100vh-64px)]">
         <h1 className="text-2xl font-semibold text-center">Create Test</h1>
+        <div className="space-y-2">
+          <Label htmlFor="title">Title of the Test</Label>
+          <Input
+            id="title"
+            placeholder="Enter test title"
+            {...register("title")}
+          />
+        </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Title of the Test</Label>
-            <Input
-              id="title"
-              placeholder="Enter test title"
-              {...register("title")}
+            <Label htmlFor="title">Test Start Time</Label>
+            <DateTimePicker
+              granularity={"minute"}
+              onChange={(val) => {
+                setValue("startTime", val);
+              }}
+              value={startTime}
             />
           </div>
           <div className="space-y-2">
@@ -235,7 +252,9 @@ export function TestCreateScreen() {
                         id="marks"
                         placeholder="Enter marks"
                         type="number"
-                        {...register(`questions.${idx}.marks`)}
+                        {...register(`questions.${idx}.marks`, {
+                          valueAsNumber: true,
+                        })}
                       />
                     </div>
                     <div className="space-y-2">

@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { WebCamContext } from "../providers/WebCamProvider/WebCamProvider";
 import {
   FilesetResolver,
@@ -63,12 +63,6 @@ export default function useWebCam() {
   });
 
   const startService = async () => {
-    console.log("Starting service");
-    if (objectDetector.current && faceDetector.current) {
-      console.log("Service already started");
-      predictionJob();
-      return;
-    }
     const vision = await FilesetResolver.forVisionTasks(
       // path/to/wasm/root
       "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
@@ -102,9 +96,21 @@ export default function useWebCam() {
       },
       runningMode: "VIDEO",
     });
-    predictionJob();
     setServiceStarted(true);
   };
+
+  useEffect(() => {
+    if (!serviceStarted) {
+      console.log("Service stopped");
+      return;
+    }
+    if (objectDetector.current && faceDetector.current) {
+      console.log("Service already started");
+      predictionJob();
+      return;
+    }
+    predictionJob();
+  }, [serviceStarted]);
 
   const checkPredictions = (predictions: Detection[]) => {
     predictions.forEach((prediction) => {
@@ -275,9 +281,8 @@ export default function useWebCam() {
   };
 
   const stopService = () => {
-    console.log("STOPPING SERVICE");
-    window.cancelAnimationFrame(animationRef.current!);
     setServiceStarted(false);
+    window.cancelAnimationFrame(animationRef.current!);
   };
 
   return {

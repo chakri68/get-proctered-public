@@ -218,7 +218,7 @@ export default function TestProvider({
 
   const startTest = async () => {
     setTestLoading(true);
-    startService(testScreenEl.current!);
+    await startService(testScreenEl.current!);
 
     // Start the session
     const formData = new FormData();

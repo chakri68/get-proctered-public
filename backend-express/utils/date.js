@@ -1,4 +1,4 @@
-export function timeSpentFrom(date: string) {
+export function timeSpentFrom(date) {
   let time = new Date().getTime() - new Date(date).getTime();
   const isAgo = time > 0;
   time = Math.abs(time);
@@ -15,9 +15,4 @@ export function timeSpentFrom(date: string) {
   else timeStr = Math.round(time / 1000 / 60 / 60 / 24 / 30 / 12) + "y";
 
   return timeStr + (isAgo ? " ago" : " early");
-}
-
-export function formatDuration(ms: number) {
-  // mins can be a float too
-  return `${Math.floor(ms / 60000)}m ${Math.floor((ms % 60000) / 1000)}s`;
 }

@@ -53,7 +53,6 @@ export default function useTestAnalytics({
       fd.append("severity", newViolation.severity);
       fd.append("timestamp", newViolation.timestamp.toISOString());
       fd.append("message", "You have violated the test rules");
-      console.log;
       if (newViolation.snapshot) fd.append("snap", newViolation.snapshot);
 
       instance.post(`/test/${testId}/analytics`, fd).then((res) => {
@@ -71,7 +70,8 @@ export default function useTestAnalytics({
     }
   }, [violations]);
 
-  const startService = (el: HTMLElement) => {
+  const startService = async (el: HTMLElement) => {
+    console.log("test service started");
     if (serviceStarted) {
       // Clear all notifications
       notifRefs.current.forEach((ref) => removeNotif(ref));
@@ -82,10 +82,10 @@ export default function useTestAnalytics({
       }
       return;
     }
-    startWebCamService();
+    await startWebCamService();
     startViolationListeners();
-    setServiceStarted(true);
     makeFullscreen(el);
+    setServiceStarted(true);
   };
 
   const stopService = () => {
