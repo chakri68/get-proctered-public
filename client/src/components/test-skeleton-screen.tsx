@@ -6,10 +6,10 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { div } from "@tensorflow/tfjs-node";
 
-export function TestSkeletonScreen() {
+export function TestSkeletonScreen({ className }: { className?: string }) {
   return (
-    <div className="w-full h-full grid place-items-center">
-      <div className="flex flex-col items-center justify-center space-y-4 p-4">
+    <div className={`h-full grid place-items-center ${className}`}>
+      <div className="flex flex-col items-center justify-center space-y-4 p-4 w-full">
         <Skeleton className="w-full max-w-3xl h-6" />
         <div className="flex justify-between w-full max-w-3xl">
           <Skeleton className="h-6 w-32" />

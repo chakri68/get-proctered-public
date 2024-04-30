@@ -136,6 +136,11 @@ export function TestGenerateScreen() {
     reader.readAsText(file);
   };
 
+  const possibleCombinations =
+    questions.length > 0 && totalMarks > 0
+      ? countPossibleCombinations(questions, totalMarks)
+      : null;
+
   if (link) {
     // Show the link in a box that user can copy
     return (
@@ -230,23 +235,33 @@ export function TestGenerateScreen() {
               onChange={(e) => {
                 setFile(e.target.files?.[0] ?? null);
               }}
+              value={file ? undefined : ""}
             />
             <Button
               onClick={() => {
                 if (!file) {
                   return;
                 }
+                if (file && questions.length > 0) {
+                  setFile(null);
+                  setValue("questions", []);
+                  return;
+                }
                 handleFileParsing(file);
               }}
             >
-              Parse the csv
+              {!(file && questions.length > 0) ? "Parse the csv" : "Clear"}
             </Button>
-            {questions.length > 0 && !isNaN(totalMarks) && (
-              <p>
-                {countPossibleCombinations(questions, totalMarks)} Combination
-                possible!
-              </p>
-            )}
+          </div>
+          <div className="space-y-2">
+            {questions.length > 0 && <p>{questions.length} Questions parsed</p>}
+            {questions.length > 0 &&
+              !isNaN(totalMarks) &&
+              (possibleCombinations ? (
+                <p>{possibleCombinations} Combination possible!</p>
+              ) : (
+                <p>Not enough questions to generate test</p>
+              ))}
           </div>
           <div className="space-y-2">
             <Button
@@ -254,7 +269,7 @@ export function TestGenerateScreen() {
                 loading ||
                 questions.length === 0 ||
                 isNaN(totalMarks) ||
-                !countPossibleCombinations(questions, totalMarks)
+                !possibleCombinations
               }
               loading={loading}
               onClick={handleSubmit(onSubmit)}
