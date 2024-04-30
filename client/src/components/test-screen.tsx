@@ -50,7 +50,6 @@ export function TestScreen() {
   const [fullLoad, setFullLoad] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const timeRemainingElRef = useRef<HTMLSpanElement | null>(null);
-  const testEndedRef = useRef(false);
 
   useEffect(() => {
     if (testDetails) {
@@ -60,11 +59,13 @@ export function TestScreen() {
       timerRef.current = setInterval(() => {
         // testDetails.duration is in mins
         const remainingTime = testDetails.endTime.getTime() - Date.now();
-        if (remainingTime < 0 && testEndedRef.current === false) {
+        if (remainingTime < 0) {
           if (timerRef.current) clearInterval(timerRef.current);
-          testEndedRef.current = true;
-          toast.error("Test has ended. Submitting your responses.");
-          submitTest();
+          toast.promise(submitTest(), {
+            loading: "Submitting Test...",
+            success: "Test Submitted",
+            error: "Failed to submit test",
+          });
         }
         if (timeRemainingElRef.current) {
           timeRemainingElRef.current.innerText = formatDuration(remainingTime);

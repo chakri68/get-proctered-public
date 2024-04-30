@@ -41,6 +41,8 @@ import { useEffect, useRef, useState } from "react";
 import instance from "@/lib/backend-connect";
 import toast, { Toaster } from "react-hot-toast";
 import { countPossibleCombinations } from "../lib/test-generation";
+import { DateTimePicker } from "./ui/date-time-picker/date-time-picker";
+import { DateValue } from "react-aria";
 
 type Question = {
   question: string;
@@ -55,6 +57,7 @@ type Question = {
 type TestCreateForm = {
   title: string;
   duration: string;
+  startTime: DateValue;
   totalMarks: string;
   questions: Question[]; // Question bank
 };
@@ -72,6 +75,7 @@ export function TestGenerateScreen() {
 
   const questions = watch("questions") as Question[];
   const totalMarks = parseInt(watch("totalMarks"));
+  const startTime = watch("startTime");
 
   const [loading, setLoading] = useState(false);
   const [link, setLink] = useState<string | null>(null);
@@ -98,9 +102,12 @@ export function TestGenerateScreen() {
           };
         }),
         generate: true,
-        totalTime: parseInt(data.duration),
         totalMarks: parseInt(data.totalMarks),
-        startTime: new Date().toISOString(),
+        startTime: data.startTime.toDate("ist").toISOString(),
+        endTime: new Date(
+          data.startTime.toDate("ist").getTime() +
+            parseInt(data.duration) * 60 * 1000
+        ).toISOString(),
       });
       setLink(res.data.data.id);
     } catch (err) {
@@ -198,13 +205,23 @@ export function TestGenerateScreen() {
       <Toaster />
       <div className="w-full max-w-2xl mx-auto space-y-6 border rounded-lg shadow-md absolute top-[50%] left-[50%] -translate-x-[50%] -translate-y-[50%] p-16 overflow-y-auto max-h-[calc(100vh-64px)]">
         <h1 className="text-2xl font-semibold text-center">Create Test</h1>
+        <div className="space-y-2">
+          <Label htmlFor="title">Title of the Test</Label>
+          <Input
+            id="title"
+            placeholder="Enter test title"
+            {...register("title")}
+          />
+        </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Title of the Test</Label>
-            <Input
-              id="title"
-              placeholder="Enter test title"
-              {...register("title")}
+            <Label htmlFor="title">Test Start Time</Label>
+            <DateTimePicker
+              granularity={"minute"}
+              onChange={(newDate) => {
+                setValue("startTime", newDate);
+              }}
+              value={startTime}
             />
           </div>
           <div className="space-y-2">
