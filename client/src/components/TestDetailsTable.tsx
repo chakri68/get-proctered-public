@@ -35,14 +35,22 @@ export function TestDetailsTable({
     <>
       <main className="flex flex-col gap-4 p-4 md:gap-8 md:p-6">
         <div className="flex flex-col gap-4 md:flex-row md:gap-8">
-          <div className="flex flex-col gap-2">
+          <div className="flex justify-around w-full gap-2">
             <div>
               <span className="font-bold">Average Marks: </span>
-              <span>{averageMarks}</span>
+              <span>{averageMarks.toFixed(2)}</span>
             </div>
             <div>
               <span className="font-bold">Average Duration: </span>
               <span>{averageDuration.toFixed(2)} mins</span>
+            </div>
+            <div>
+            <span className="font-bold">Highest Marks: </span>
+              <span>{students[0].marks}</span>
+            </div>
+            <div>
+            <span className="font-bold">Lowest Marks: </span>
+              <span>{students[students.length-1].marks}</span>
             </div>
           </div>
         </div>
