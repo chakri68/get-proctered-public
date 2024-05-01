@@ -259,6 +259,8 @@ export function TestCreateScreen() {
                       {...register(`questions.${idx}.question`)}
                     />
                   </div>
+                  <div className="flex items-center justify-between">
+                    <div>
                   <Options
                     control={control}
                     questionIdx={idx}
@@ -266,6 +268,12 @@ export function TestCreateScreen() {
                     setValue={setValue}
                     watch={watch}
                   />
+                  </div><div>
+                  <Button size="sm" className="bg-red-600 hover:bg-red-500" onClick={() => remove(idx)}>
+                Remove Question
+              </Button>
+              </div>
+              </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="marks">Marks</Label>
@@ -444,9 +452,6 @@ const Options = ({
             }}
           >
             Add Option
-          </Button>
-          <Button className="bg-red-600 hover:bg-red-500">
-            Remove Question
           </Button>
         </div>
       </div>

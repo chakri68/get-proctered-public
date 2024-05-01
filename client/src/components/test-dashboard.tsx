@@ -131,7 +131,7 @@ export function TestDashboard() {
     );
     const allTests = await instance.get("/dashboardData");
     console.log(allTests.data);
-    setTests(allTests.data.tests);
+    setTests(allTests.data.testsWithAverage);
   };
 
   useEffect(() => {
@@ -207,7 +207,7 @@ export function TestDashboard() {
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Duration</span>
                     <span className="text-sm">
-                      {test.duration ? test.duration : "20"} mins
+                      {test.startTime ? ((new Date(test.endTime).getTime() - new Date(test.startTime).getTime()) / (1000 * 60)) : 20} mins
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
@@ -219,7 +219,7 @@ export function TestDashboard() {
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Students</span>
                     <span className="text-sm">
-                      {test.TestTaker ? test.TestTaker.length : "0"}
+                      {test.students ? test.students : "0"}
                     </span>
                   </div>
                   <Button
