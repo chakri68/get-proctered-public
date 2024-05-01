@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export const BACKEND_URL = "https://localhost:4000";
+export const BACKEND_URL = "https://192.168.157.69:4000/";
 
 try {
   // @ts-ignore
