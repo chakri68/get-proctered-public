@@ -2,7 +2,7 @@ import React from "react";
 
 const Footer = () => {
   return (
-    <div className="fixed bottom-0 w-full">
+    <div>
       <footer className="footer p-10 bg-neutral text-neutral-content">
         <nav className="ml-56 text-md">
           <a href="https://iiitl.ac.in/" className="link link-hover">IIIT Lucknow</a>
