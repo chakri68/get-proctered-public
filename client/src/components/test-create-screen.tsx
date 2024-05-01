@@ -79,12 +79,15 @@ export function TestCreateScreen() {
   const [link, setLink] = useState<string | null>(null);
   const linkRef = useRef<HTMLInputElement>(null);
   const [copied, setCopied] = useState(false);
-
+  const [showPopup, setShowPopup] = useState(false);
   const { append, fields, remove } = useFieldArray({
     control,
     name: "questions",
   });
-
+  const handleGeneratePDFClick = () => {
+    console.log("jdjdjd");
+    setShowPopup(true);
+  };
   const onSubmit: SubmitHandler<TestCreateForm> = async (data) => {
     setLoading(true);
     try {
@@ -328,7 +331,7 @@ export function TestCreateScreen() {
           </Button>
         </div>
       </div>
-      <Button className="rounded-lg shadow-md flex font-semibold items-center p-3 absolute top-[90%] left-[85%] -translate-x-[50%] -translate-y-[50%] bg-gradient-to-r from-pink-400 to-purple-400 text-white">
+      <Button className="rounded-lg shadow-md flex font-semibold items-center p-3 absolute top-[90%] left-[85%] -translate-x-[50%] -translate-y-[50%] bg-gradient-to-r from-pink-400 to-purple-400 text-white" onClick={handleGeneratePDFClick}>
         <span>Generate Questions with AI</span>
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -345,6 +348,17 @@ export function TestCreateScreen() {
           />
         </svg>
       </Button>
+      {showPopup && (
+        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-8 rounded-lg">
+            <iframe
+              src="http://localhost:8501/"
+              className="w-[70vw] h-[80vh]"
+            />
+            <button onClick={() => setShowPopup(false)}>Close</button>
+          </div>
+        </div>
+      )}
     </>
   );
 }
