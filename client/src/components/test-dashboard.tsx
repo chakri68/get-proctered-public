@@ -36,26 +36,34 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 
-export function TestDashboard() {
+export function TestDashboard({
+  tests,
+  violations,
+}: {
+  tests: {
+    id: string;
+    name: string;
+    startTime: string;
+    endTime: string;
+    questions: any[];
+    students: number;
+  }[];
+  violations: {
+    test: string;
+    testId: string;
+    student: string;
+    studentId: string;
+    violation: string;
+    severity: string;
+    timestamp: string;
+    resolved: boolean;
+    idx: number;
+    snapshot?: string;
+  }[];
+}) {
   const router = useRouter();
-  const analytics = useRef<any>(null);
 
   const [modalImage, setModalImage] = useState<string | null>(null);
-
-  const [violations, setViolations] = useState<
-    {
-      test: string;
-      testId: string;
-      student: string;
-      studentId: string;
-      violation: string;
-      severity: string;
-      timestamp: string;
-      resolved: boolean;
-      idx: number;
-      snapshot?: string;
-    }[]
-  >([]);
 
   const markResolved = (testId: string, userId: string, eventIdx: number) => {
     instance
@@ -67,7 +75,7 @@ export function TestDashboard() {
       .then((res) => {
         toast.success("Maked as resolved successfully");
         console.log(res.data);
-        fetchData();
+        router.refresh();
       })
       .catch((err) => {
         if (err instanceof AxiosError) {
@@ -90,7 +98,7 @@ export function TestDashboard() {
       .then((res) => {
         toast.success("User unbanned successfully");
         console.log(res.data);
-        fetchData();
+        router.refresh();
       })
       .catch((err) => {
         if (err instanceof AxiosError) {
@@ -100,47 +108,10 @@ export function TestDashboard() {
         }
       });
   };
-  const [tests, setTests] = useState<any[]>([]);
-
-  const fetchData = async () => {
-    const res = await instance.get("/analytics");
-    console.log(res.data);
-    analytics.current = res.data;
-    setViolations(
-      res.data.testSessions
-        .map((t: any) =>
-          t.events.map((e: any, idx: number) => ({
-            ...e,
-            testId: t.test.id,
-            test: t.test.name,
-            studentId: t.user.id,
-            student: t.user.name,
-            violation: e.code,
-            severity: e.severity,
-            timestamp: e.timestamp,
-            idx,
-          }))
-        )
-        .flat()
-        .filter((e: any) => e.resolved === false)
-        .toSorted(
-          (a: any, b: any) =>
-            new Date(b.timestamp as string).getTime() -
-            new Date(a.timestamp as string).getTime()
-        )
-    );
-    const allTests = await instance.get("/dashboardData");
-    console.log(allTests.data);
-    setTests(allTests.data.testsWithAverage);
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   const deleteTest = async (id: string) => {
     await instance.post(`/dashboardData/deleteTest/${id}`);
-    fetchData();
+    router.refresh();
   };
 
   return (
@@ -179,63 +150,69 @@ export function TestDashboard() {
           </Button>
         </div>
         <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {tests.map((test, idx) => (
-            <Card key={idx}>
-              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                <CardTitle className="text-sm font-medium">
-                  {test.name}
-                </CardTitle>
-                <div className="flex items-center gap-2">
-                  <Button size="icon" variant="outline">
-                    <FileEditIcon className="h-4 w-4" />
-                    <span className="sr-only">Edit</span>
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    onClick={() => {
-                      deleteTest(test.id);
-                    }}
-                  >
-                    <TrashIcon className="h-4 w-4" />
-                    <span className="sr-only">Delete</span>
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Duration</span>
-                    <span className="text-sm">
-                      {test.startTime ? ((new Date(test.endTime).getTime() - new Date(test.startTime).getTime()) / (1000 * 60)) : 20} mins
-                    </span>
+          {tests &&
+            tests.map((test, idx) => (
+              <Card key={idx}>
+                <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+                  <CardTitle className="text-sm font-medium">
+                    {test.name}
+                  </CardTitle>
+                  <div className="flex items-center gap-2">
+                    <Button size="icon" variant="outline">
+                      <FileEditIcon className="h-4 w-4" />
+                      <span className="sr-only">Edit</span>
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      onClick={() => {
+                        deleteTest(test.id);
+                      }}
+                    >
+                      <TrashIcon className="h-4 w-4" />
+                      <span className="sr-only">Delete</span>
+                    </Button>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Questions</span>
-                    <span className="text-sm">
-                      {test.questions ? test.questions.length : "0"}
-                    </span>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Duration</span>
+                      <span className="text-sm">
+                        {test.startTime
+                          ? (new Date(test.endTime).getTime() -
+                              new Date(test.startTime).getTime()) /
+                            (1000 * 60)
+                          : 20}{" "}
+                        mins
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Questions</span>
+                      <span className="text-sm">
+                        {test.questions ? test.questions.length : "0"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Students</span>
+                      <span className="text-sm">
+                        {test.students ? test.students : "0"}
+                      </span>
+                    </div>
+                    <Button
+                      className="w-full"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        router.push(`/dashboard/test/${test.id}`);
+                      }}
+                    >
+                      View Details
+                    </Button>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Students</span>
-                    <span className="text-sm">
-                      {test.students ? test.students : "0"}
-                    </span>
-                  </div>
-                  <Button
-                    className="w-full"
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      router.push(`/dashboard/test/${test.id}`);
-                    }}
-                  >
-                    View Details
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            ))}
         </div>
       </section>
       <section>
@@ -455,8 +432,6 @@ function FilterIcon(props: any) {
     </svg>
   );
 }
-
-
 
 function TrashIcon(props: any) {
   return (

@@ -14,7 +14,6 @@ import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import instance from "@/lib/backend-connect";
 
-
 type student = {
   user: {
     name: string;
@@ -23,41 +22,29 @@ type student = {
   violations: number;
   marks: number;
 };
-export function TestDetailsTable() {
-  const { id } = useParams();
-  useEffect(() => {
-    const fetchData = async () => {
-    
-      const res = await instance.get(`/dashboardData/getTest/${id}`);
-      console.log(res.data.testSessions);
-      const data = res.data.testSessions;
-      data.sort((a:any, b:any) => b.marks - a.marks);
-      setStudents(data);
-      const averageScore = data.reduce((acc:any, curr:any) => acc + curr.marks, 0) / data.length;
-      const averageDur = data.reduce((acc:any, curr:any) => acc + (curr.startTime ? ((new Date(curr.endTime).getTime() - new Date(curr.startTime).getTime()) / (1000 * 60)):0), 0) / data.length;
-      setAverageMarks(averageScore);
-      setAverageDuration(averageDur);
-    };
-    fetchData();
-  }, [id]);
-
-  const [students, setStudents] = useState([]);
-  const [averageMarks, setAverageMarks] = useState(0);
-  const [averageDuration, setAverageDuration] = useState(0);
+export function TestDetailsTable({
+  students,
+  averageMarks,
+  averageDuration,
+}: {
+  students: student[];
+  averageMarks: number;
+  averageDuration: number;
+}) {
   return (
     <>
       <main className="flex flex-col gap-4 p-4 md:gap-8 md:p-6">
         <div className="flex flex-col gap-4 md:flex-row md:gap-8">
-            <div className="flex flex-col gap-2">
-              <div>
-                <span className="font-bold">Average Marks: </span>
-                <span>{averageMarks}</span>
-              </div>
-              <div>
-                <span className="font-bold">Average Duration: </span>
-                <span>{averageDuration}{" "}mins</span>
-              </div>
+          <div className="flex flex-col gap-2">
+            <div>
+              <span className="font-bold">Average Marks: </span>
+              <span>{averageMarks}</span>
             </div>
+            <div>
+              <span className="font-bold">Average Duration: </span>
+              <span>{averageDuration.toFixed(2)} mins</span>
+            </div>
+          </div>
         </div>
         <div className="mt-4 rounded-lg border border-gray-200 shadow-sm dark:border-gray-800">
           <Table>
@@ -71,19 +58,18 @@ export function TestDetailsTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {students && students.map((v:student, idx) => (
-                <TableRow key={idx}>
-                  <TableCell>{idx+1}</TableCell>
-                  <TableCell>{v.user.name}</TableCell>
-                  <TableCell>{v.user.email}</TableCell>
-                  <TableCell>
-                    <Badge>{v.violations}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    {v.marks}
-                  </TableCell>
-                </TableRow>
-              ))}
+              {students &&
+                students.map((v: student, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell>{idx + 1}</TableCell>
+                    <TableCell>{v.user.name}</TableCell>
+                    <TableCell>{v.user.email}</TableCell>
+                    <TableCell>
+                      <Badge>{v.violations}</Badge>
+                    </TableCell>
+                    <TableCell>{v.marks}</TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
         </div>
